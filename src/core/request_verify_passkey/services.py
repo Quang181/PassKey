@@ -1,22 +1,18 @@
 # from http.client import HTTPException
-from idlelib.configdialog import changes
+from base64 import urlsafe_b64decode
+
+import jwt
 from fastapi import HTTPException
-from .ports import RequestVerifyPassKeyUseCase
-from src.infra.connect_redis import Redis
 from webauthn import (
-    generate_authentication_options,
     verify_authentication_response,
-    options_to_json,
     base64url_to_bytes,
 )
-from webauthn.helpers.structs import (
-    PublicKeyCredentialDescriptor,
-    UserVerificationRequirement,
-)
-import jwt
-from src.comman import rp_id
+
 from src.comman import SECRET_KEY
-from base64 import urlsafe_b64decode
+from src.comman import rp_id
+from src.infra.connect_redis import Redis
+from .ports import RequestVerifyPassKeyUseCase
+
 
 class RequestVerifyAccount(RequestVerifyPassKeyUseCase):
 
