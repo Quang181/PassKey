@@ -16,8 +16,8 @@ class Account(Base):
     email = Column(String(50))
     password = Column(String(100))
     username = Column(String(50))
-
-    integration_passkeys = relationship("IntegrationPasskey", back_populates="account")
+    #
+    # integration_passkeys = relationship("IntegrationPasskey", back_populates="account")
 
     def get_info_user_by_username(self):
         session = Session()
@@ -27,7 +27,7 @@ class Account(Base):
         return info_user
 
 # Tạo bảng trong cơ sở dữ liệu
-# Base.metadata.create_all(engine)
+Base.metadata.create_all(engine)
 # #
 
 # session = Session()
