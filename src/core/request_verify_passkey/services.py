@@ -1,5 +1,6 @@
+# from http.client import HTTPException
 from idlelib.configdialog import changes
-
+from fastapi import HTTPException
 from .ports import RequestVerifyPassKeyUseCase
 from src.infra.connect_redis import Redis
 from webauthn import (
@@ -15,6 +16,7 @@ from webauthn.helpers.structs import (
 import jwt
 from src.comman import rp_id
 from src.comman import SECRET_KEY
+from base64 import urlsafe_b64decode
 
 class RequestVerifyAccount(RequestVerifyPassKeyUseCase):
 
@@ -28,10 +30,21 @@ class RequestVerifyAccount(RequestVerifyPassKeyUseCase):
 
             config_passkey = await self.redis_cli.get_value_by_key(convert_key)
 
+            if not config_passkey:
+                raise HTTPException(status_code=413, detail="No config")
+
             challenge = config_passkey.get("challenge")
-            public_key = config_passkey.get("public_key")
-            if not challenge or not public_key:
-                return
+
+            credential_id = data_verify.get("rawId")
+
+            if not credential_id:
+                raise HTTPException(status_code=413, detail="not access credential")
+
+            credential_id = urlsafe_b64decode(f"{credential_id}===")
+
+            public_key = config_passkey.get(credential_id)
+            if not public_key:
+                raise HTTPException(status_code=413, detail="Not config public key")
 
             authentication_verification = verify_authentication_response(
                 # Demonstrating the ability to handle a stringified JSON version of the WebAuthn response
@@ -55,7 +68,7 @@ class RequestVerifyAccount(RequestVerifyPassKeyUseCase):
                 expected_challenge=base64url_to_bytes(challenge),
                 expected_rp_id=rp_id,
                 expected_origin="http://localhost:5000",
-                credential_public_key=base64url_to_bytes("public_key"),
+                credential_public_key=base64url_to_bytes(public_key),
                 require_user_verification=True,
             )
 

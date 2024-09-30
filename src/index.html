@@ -85,7 +85,6 @@
                         cred.id = b64decode(cred.id);
                         return cred;
                     })
-                    c = b64decode(data.challenge)
                     return navigator.credentials.create({
                         publicKey: data
                     });

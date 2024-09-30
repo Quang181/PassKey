@@ -24,12 +24,18 @@ class IntegrationPassKeyService(VerifyRegisterPasskeyUseCase):
         fullname = info_account.get("fullname")
         credential_id = data_verify.get("credential_id")
 
+        key_credential = str(user_id) + "###" + "credentials"
         if not credential_id:
             raise HTTPException(status_code=500, detail="No credential")
 
         check_credential = await self.integration_passkey.check_credential(credential_id)
         if check_credential:
             raise HTTPException(status_code=413, detail="Credential exits")
+
+        credential_request = [i.decode("utf-8") for i in await self.redis_cli.list_value(key_credential)]
+
+        if credential_id not in credential_request and credential_id:
+            raise HTTPException(status_code=400, detail="Invalid credential")
 
         challenge_key = self.redis_cli.get(str(user_id) + str(username) + str(fullname) + "challenge")
         if not challenge_key:

@@ -1,22 +1,25 @@
 import redis
 from pydantic.v1 import NoneStr
 
-# Tạo kết nối tới Redis server
-r = redis.Redis(
-    host='localhost',  # Địa chỉ server Redis (thường là localhost nếu chạy trên máy)
-    port=6379,         # Cổng mặc định của Redis
-      # Nếu Redis có yêu cầu password, điền vào đây. Nếu không, để trống.
-         # Chọn database (0 là database mặc định)
-)
 
+# Tạo kết nối tới Redis server
+# r = redis.Redis(
+#     host='123.30.48.240',  # Địa chỉ server Redis (thường là localhost nếu chạy trên máy)
+#     port=6379,         # Cổng mặc định của Redis
+#       # Nếu Redis có yêu cầu password, điền vào đây. Nếu không, để trống.
+#          # Chọn database (0 là database mặc định)
+# )
+#
+# c = r.rpush("test", *["|1,", "b", "c"])
+#
+# u = r.lrange("test", 0, -1)
+# print("cc")
 class Redis:
-    localhost = "localhost"
+    localhost = "123.30.48.240"
     port = 6379
 
     def __init__(self):
         self.redis_cli = self.connect_redis()
-
-
 
     def connect_redis(self):
         connect = redis.Redis(
@@ -31,7 +34,7 @@ class Redis:
         value = self.redis_cli.get(key)
         return value
 
-    def set_value(self,key, value, expire=None) -> None:
+    def set_value(self, key, value, expire=None) -> None:
         if expire is None:
             self.redis_cli.set(key, value)
         else:
@@ -41,6 +44,16 @@ class Redis:
 
         self.redis_cli.delete(key)
 
+    ####
+
+    async def set_data_list(self, key, data: list, expire=None) -> None:
+        save_data = self.redis_cli.rpush(key, *data)
+        if expire:
+            set_expire = self.redis_cli.expire(key, expire)
+
+
+    async def list_value(self, key, start=0, stop=-1):
+        return self.redis_cli.lrange(key, start, stop)
 # # Đặt một giá trị (set key-value)
 # r.set('name', 'John Doe')
 #
