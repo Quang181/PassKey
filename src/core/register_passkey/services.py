@@ -65,10 +65,10 @@ class RegisterPasskeyService(RegistryPassKeyUseCase):
                 resident_key=ResidentKeyRequirement.PREFERRED,
             ), )
 
-        convert_key = str(user_id) + str(username) + str(fullname) + "challenge"
+        convert_key = "test" + "challenge"
         key_credential = str(user_id) + "###" + "credentials"
 
-        self.redis_cli.set_value(convert_key, challenge_base64, 300)
+        self.redis_cli.set_value(convert_key, challenge_base64, 3000)
         if data_save_redis:
             await self.redis_cli.set_data_list(key_credential, data_save_redis, 300)
 

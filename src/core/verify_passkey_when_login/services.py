@@ -65,7 +65,7 @@ class VerifyPassKeyWhenLoginService(VerifyPasskeyWhenLoginUseCase):
             key_request_verify_passkey = account_id + "request#verify#passkey"
 
 
-            self.redis_cli.set_value(key_request_verify_passkey, config_public_key, 300)
+            self.redis_cli.set_value(key_request_verify_passkey, config_public_key, 3000)
 
             return {
                 "code": 200,

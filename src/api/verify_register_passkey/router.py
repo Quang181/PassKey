@@ -6,7 +6,7 @@ from .schenmas import VerifyRegisterPassKey
 router = APIRouter()
 
 @router.post("")
-async def info_user_by_token(body, info_user = Depends(get_accessor),
+async def info_user_by_token(body: dict, info_user = Depends(get_accessor),
                              service = Depends(integration_pass_key_use_case)) -> VerifyRegisterPassKey:
 
     register_info = await service.verify_register_passkey(body, info_user)
