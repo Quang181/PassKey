@@ -63,8 +63,9 @@
     }
 
     // if (!window.PublicKeyCredential || !window.fetch) {
-    //     // noWebAuthnError.style.display = 'block';
+    //     noWebAuthnError.style.display = 'block';
     // } else
+    else
         hasWebAuthn.style.display = 'block';
 
         registerButton.addEventListener('click', function () {
@@ -98,7 +99,7 @@
 
                     }
                     console.log(response)
-                    return fetch_json("http://0.0.0.0:8000/verify/register-passkey", {
+                    return fetch_json("http://123.30.48.240:8000/verify/register-passkey", {
                         method: "POST",
                         headers: {
                            "Authorization": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjoiMTIzMTIzajEybnNkaGEtZGFza2RuYXMxMiIsInVzZXJuYW1lIjoicXVhbmcxODEiLCJmdWxsbmFtZSI6Ik1pbmggUXVhbmciLCJlbWFpbCI6" +
@@ -149,7 +150,7 @@
                             user: b64encode(response.response.userHandle),
                         }
                     }
-                    return fetch_json("http://123.30.48.240:8000/verify/passkey", {
+                    return fetch_json("http://10.0.67.151:8000/verify/passkey", {
                         method: "POST",
                         headers: {
                             "Authorization": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjoiMTIzMTIzajEybnNkaGEtZGFza2RuYXMxMiIsInVzZXJuYW1lIjoicXVhbmcxODEiLCJmdWxsbmFtZSI6Ik1pbmggUXVhbmciLCJlbWFpbCI6" +

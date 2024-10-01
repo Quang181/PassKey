@@ -1,6 +1,6 @@
 from sqlalchemy.orm import declarative_base, sessionmaker
 SECRET_KEY = "quang181"
-rp_id = "localhost"
+rp_id = "123.30.48.240"
 rp_name = "Vcc"
 # Connet mysql
 from sqlalchemy import create_engine
