@@ -71,7 +71,7 @@
             loadingElm.style.display = 'block';
             errorElm.style.display = 'none';
             c = null
-            fetch_json("http://10.0.67.151:8000/register/passkey", {
+            fetch_json("http://123.30.48.240:8000/register/passkey", {
                     headers: {
                           "Authorization": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjoiMTIzMTIzajEybnNkaGEtZGFza2RuYXMxMiIsInVzZXJuYW1lIjoicXVhbmcxODEiLCJmdWxsbmFtZSI6Ik1pbmggUXVhbmciLCJlbWFpbCI6" +
                                 "ImVxdWFuZzE4MUBnbWFpbC5jb20iLCJleHAiOjE3Mjc4MDA5Mjh9.LdhslZTI-4SHfQLiEj_jBBzouEVFq2PTBUiXHaul5Hc",
@@ -122,7 +122,7 @@
         loginButton.addEventListener('click', function () {
             loadingElm.style.display = 'block';
             errorElm.style.display = 'none';
-            fetch_json("http://10.0.67.151:8000/request/verify-passkey",
+            fetch_json("http://123.30.48.240:8000/request/verify-passkey",
                 {   method: GET,
                     headers: {
                         "Authorization": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjoiMTIzMTIzajEybnNkaGEtZGFza2RuYXMxMiIsInVzZXJuYW1lIjoicXVhbmcxODEiLCJmdWxsbmFtZSI6Ik1pbmggUXVhbmciLCJlbWFpbCI6" +
@@ -149,7 +149,7 @@
                             user: b64encode(response.response.userHandle),
                         }
                     }
-                    return fetch_json("http://10.0.67.151:8000/verify/passkey", {
+                    return fetch_json("http://123.30.48.240:8000/verify/passkey", {
                         method: "POST",
                         headers: {
                             "Authorization": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjoiMTIzMTIzajEybnNkaGEtZGFza2RuYXMxMiIsInVzZXJuYW1lIjoicXVhbmcxODEiLCJmdWxsbmFtZSI6Ik1pbmggUXVhbmciLCJlbWFpbCI6" +
