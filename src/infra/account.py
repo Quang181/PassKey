@@ -27,7 +27,7 @@ class Account(Base):
         return info_user
 
 # Tạo bảng trong cơ sở dữ liệu
-Base.metadata.create_all(engine)
+# Base.metadata.create_all(engine)
 # #
 
 # session = Session()
