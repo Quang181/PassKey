@@ -45,7 +45,7 @@ class RegisterPasskeyService(RegistryPassKeyUseCase):
         configs_passkey = await self.integration_passkey.integration_pass_key(account_id=user_id)
         for i in configs_passkey:
             credential_id = i.credential_id
-            credential_ids.append(PublicKeyCredentialDescriptor(id=credential_id.encode("utf-8")))
+            credential_ids.append(PublicKeyCredentialDescriptor(id=credential_id))
             data_save_redis.append(credential_id)
 
         challenge = os.urandom(64)
