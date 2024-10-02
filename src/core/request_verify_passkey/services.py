@@ -32,8 +32,8 @@ class RequestVerifyAccount(RequestVerifyPassKeyUseCase):
 
             config_passkey = json.loads(config_passkey)
             challenge = config_passkey.get("challenge")
-
-            credential_id = data_verify.get("rawId")
+            response = data_verify.get("response")
+            credential_id = response.get("rawId")
 
             if not credential_id:
                 raise HTTPException(status_code=413, detail="not access credential")
@@ -61,7 +61,7 @@ class RequestVerifyAccount(RequestVerifyPassKeyUseCase):
                 #     "clientExtensionResults": {}
                 # }""",
                 credential={
-                    **data_verify
+                    **response
                 },
                 expected_challenge=base64url_to_bytes(challenge),
                 expected_rp_id=rp_id,
