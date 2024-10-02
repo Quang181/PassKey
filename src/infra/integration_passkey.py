@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, CheckConstraint, Enum
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, CheckConstraint, Enum, LargeBinary
 from sqlalchemy.ext.declarative import declarative_base
 # from . import engine
 from src.comman import engine, Session
@@ -12,14 +12,14 @@ class IntegrationPasskey(Base):
 
     id = Column(String(100), primary_key=True)
     account_id = Column(String(100))
-    credential_id = Column(String(100))
-    credential_public_key = Column(String(100))
+    credential_id = Column(LargeBinary(1024))
+    credential_public_key = Column(LargeBinary(1024))
     sign_count = Column(Integer, default=0)
     aaguid = Column(String(100))  # Mã định danh của sản phẩm dùng để xác thực
     fmt = Column(String(20))  # Cho phép NULL
     __table_args__ = (
         CheckConstraint(
-            "fmt IN ('fido-u2f', 'packed', 'tpm', 'apple', 'android-safetynet', 'android-key') OR fmt IS NULL", name='check_fmt_column'),
+            "fmt IN ('fido-u2f', 'packed', 'tpm', 'apple', 'android-safetynet', 'android-key', 'none')", name='check_fmt_column'),
     )
     credential_type = Column(String(30), default="public_key")
     # user_verified =
@@ -51,10 +51,11 @@ class IntegrationPasskey(Base):
                                                   sign_count=self.sign_count, aaguid=self.aaguid,
                                                   fmt=self.fmt, create_on=self.create_on, update_one=self.update_one)
             session.add(info_integration)
+            session.commit()
             session.close()
 
             status_create = True
-        except:
+        except Exception as e:
             status_create = False
 
         return status_create

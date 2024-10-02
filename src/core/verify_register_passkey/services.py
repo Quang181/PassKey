@@ -80,8 +80,8 @@ class IntegrationPassKeyService(VerifyRegisterPasskeyUseCase):
         return {
             "id": cls.gen_id_account(),
             "account_id": info_account.get("account_id"),
-            "credential_id": info_verify.credential_id.decode("utf-8") if info_verify.credential_id else None,
-            "credential_public_key": info_verify.credential_public_key.decode("utf-8") if info_verify.credential_public_key else None,
+            "credential_id": info_verify.credential_id,
+            "credential_public_key": info_verify.credential_public_key,
             "sign_count": info_verify.sign_count,
             "aaguid": info_verify.aaguid,
             "fmt": info_verify.fmt,
