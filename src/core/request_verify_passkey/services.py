@@ -37,12 +37,14 @@ class RequestVerifyAccount(RequestVerifyPassKeyUseCase):
 
             if not credential_id:
                 raise HTTPException(status_code=413, detail="not access credential")
-
-            credential_id = urlsafe_b64decode(f"{credential_id}===")
+            #
+            # credential_id = urlsafe_b64decode(f"{credential_id}===")
+            credential_id = base64url_to_bytes(credential_id).hex()
 
             public_key = config_passkey.get(credential_id)
             if not public_key:
                 raise HTTPException(status_code=413, detail="Not config public key")
+            public_key = bytes.fromhex(public_key)
 
             authentication_verification = verify_authentication_response(
                 # Demonstrating the ability to handle a stringified JSON version of the WebAuthn response
