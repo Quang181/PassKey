@@ -46,9 +46,9 @@ class VerifyPassKeyWhenLoginService(VerifyPasskeyWhenLoginUseCase):
                 credentials = i.credential_id
                 public_key = i.credential_public_key
 
-                credential_ids.append(PublicKeyCredentialDescriptor(id=credentials.encode("utf-8")))
+                credential_ids.append(PublicKeyCredentialDescriptor(id=credentials))
                 config_public_key.update({
-                    credentials: public_key
+                    str(credentials): str(public_key)
                 })
 
             challenge = os.urandom(64)
