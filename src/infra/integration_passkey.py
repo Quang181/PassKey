@@ -49,7 +49,8 @@ class IntegrationPasskey(Base):
                                                   credential_id=self.credential_id,
                                                   credential_public_key=self.credential_public_key,
                                                   sign_count=self.sign_count, aaguid=self.aaguid,
-                                                  fmt=self.fmt, create_on=self.create_on, update_one=self.update_one)
+                                                  fmt=self.fmt, create_on=self.create_on, update_one=self.update_one,
+                                                  status=self.status, credential_type=self.credential_type, credential_device_type=self.credential_device_type)
             session.add(info_integration)
             session.commit()
             session.close()
