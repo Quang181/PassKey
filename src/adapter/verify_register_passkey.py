@@ -9,7 +9,7 @@ class VerifyRegisterPasskeyAdapter(VerifyRegisterPasskeyRepository):
         super().__init__()
 
     async def create_info_register_passkey(self, info_register: InfoRegister):
-        integration_passkey = IntegrationPasskey(**info_register.__dict__)
+        integration_passkey = IntegrationPasskey(**info_register)
         status_create = await integration_passkey.create_integration()
         if not status_create:
             raise InternalServerError
