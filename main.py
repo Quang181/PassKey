@@ -20,6 +20,37 @@ async def say_hello(name: str):
     return {"message.py": f"Hello {name}"}
 
 
+@app.get("/configs-passkey")
+async def configs_passkey():
+    return {
+        "data": [
+            {
+                "id_passkey": "123456789",
+                "username": "test1",
+                "status": "active"
+            },
+            {
+                "id_passkey": "0987654321",
+                "username": "test2",
+                "status": "active"
+            },
+            {
+                "id_passkey": "09876543222",
+                "username": "test3",
+                "status": "deactive"
+            }
+        ]
+    }
+
+@app.patch("/configs-passkey")
+async def configs_passkey(body: dict):
+    return {
+        "data": {
+            "code": 200,
+            "message": "success"
+        }
+    }
+
 def register_routes(app: FastAPI) -> FastAPI:
     # app.include_router(root.router)
     app.include_router(login, prefix="/login", tags=["PassKey"])
@@ -45,6 +76,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 # app.config['ENABLE_WEBAUTHN'] = False
+
+
 
 
 if __name__ == '__main__':
