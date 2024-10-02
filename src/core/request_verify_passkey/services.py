@@ -6,8 +6,9 @@ from fastapi import HTTPException
 from webauthn import (
     verify_authentication_response,
     base64url_to_bytes,
-)
 
+)
+from webauthn.helpers.base64url_to_bytes import base64url_to_bytes
 from src.comman import SECRET_KEY
 from src.comman import rp_id
 from src.infra.connect_redis import Redis
