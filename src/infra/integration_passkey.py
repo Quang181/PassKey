@@ -1,4 +1,3 @@
-from requests import session
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, CheckConstraint, Enum
 from sqlalchemy.ext.declarative import declarative_base
 # from . import engine

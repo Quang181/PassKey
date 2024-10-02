@@ -1,5 +1,3 @@
-from watchfiles import awatch
-
 from src.core.verify_passkey_when_login.ports import VerifyPasskeyWhenLoginRepository
 from src.infra.integration_passkey import IntegrationPasskey
 
