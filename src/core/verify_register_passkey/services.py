@@ -41,7 +41,9 @@ class IntegrationPassKeyService(VerifyRegisterPasskeyUseCase):
         # if credential_id not in credential_request and credential_id:
         #     raise HTTPException(status_code=400, detail="Invalid credential")
 
-        challenge_key = self.redis_cli.get_value_by_key("test" + "challenge")
+        convert_key = "test" + "challenge"
+        challenge_key = await self.redis_cli.get_value_by_key(convert_key)
+        print(challenge_key)
         if not challenge_key:
             raise HTTPException(status_code=413, detail="Please request before verify Passkey")
 

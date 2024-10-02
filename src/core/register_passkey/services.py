@@ -67,10 +67,10 @@ class RegisterPasskeyService(RegistryPassKeyUseCase):
 
         convert_key = "test" + "challenge"
         key_credential = str(user_id) + "###" + "credentials"
-
-        self.redis_cli.set_value(convert_key, challenge_base64, 3000)
+        print(challenge_base64)
+        self.redis_cli.set_value(convert_key, challenge_base64.decode("utf-8"), 3000)
         if data_save_redis:
-            await self.redis_cli.set_data_list(key_credential, data_save_redis, 300)
+            await self.redis_cli.set_data_list(key_credential, data_save_redis, 3000)
 
         return {
             "data": json.loads(options_to_json(complex_registration_options))

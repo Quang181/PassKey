@@ -1,4 +1,7 @@
 # from http.client import HTTPException
+import base64
+import os
+
 from fastapi import HTTPException
 from .ports import VerifyPasskeyWhenLoginUseCase
 from webauthn.helpers.structs import (
@@ -48,23 +51,27 @@ class VerifyPassKeyWhenLoginService(VerifyPasskeyWhenLoginUseCase):
                     credentials: public_key
                 })
 
+            challenge = os.urandom(64)
+            challenge_base64 = base64.b64encode(challenge)
             complex_authentication_options = generate_authentication_options(
                 rp_id=rp_id,
                 timeout=12000,
+                challenge=challenge_base64,
                 allow_credentials=credential_ids,
                 user_verification=UserVerificationRequirement.REQUIRED,
             )
 
-            challenge = complex_authentication_options.challenge
+
+            # challenge = complex_authentication_options.challenge
 
             if not challenge:
-                raise HTTPException(status_code=500, detail="Challenge not create")
+                raise HTTPException(status_code=413, detail="Challenge not create")
 
-            config_public_key["challenge"] = challenge
+            config_public_key["challenge"] = challenge_base64.decode("utf-8")
 
             key_request_verify_passkey = account_id + "request#verify#passkey"
 
-
+            config_public_key = json.dumps(config_public_key)
             self.redis_cli.set_value(key_request_verify_passkey, config_public_key, 3000)
 
             return {
@@ -72,5 +79,5 @@ class VerifyPassKeyWhenLoginService(VerifyPasskeyWhenLoginUseCase):
                 "status": "active",
                 "data": json.loads(options_to_json(complex_authentication_options))
             }
-        except:
+        except Exception as e:
             raise HTTPException(status_code=500, detail="Server error")

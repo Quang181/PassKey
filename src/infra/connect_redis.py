@@ -11,7 +11,7 @@ from pydantic.v1 import NoneStr
 # )
 #
 # c = r.rpush("test", *["|1,", "b", "c"])
-#
+# #
 # u = r.lrange("test", 0, -1)
 # print("cc")
 class Redis:
@@ -30,7 +30,7 @@ class Redis:
         )
         return connect
 
-    def get_value_by_key(self, key):
+    async def get_value_by_key(self, key):
         value = self.redis_cli.get(key)
         return value
 

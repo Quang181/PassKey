@@ -12,7 +12,7 @@ from src.comman import SECRET_KEY
 from src.comman import rp_id
 from src.infra.connect_redis import Redis
 from .ports import RequestVerifyPassKeyUseCase
-
+import json
 
 class RequestVerifyAccount(RequestVerifyPassKeyUseCase):
 
@@ -29,6 +29,7 @@ class RequestVerifyAccount(RequestVerifyPassKeyUseCase):
             if not config_passkey:
                 raise HTTPException(status_code=413, detail="No config")
 
+            config_passkey = json.loads(config_passkey)
             challenge = config_passkey.get("challenge")
 
             credential_id = data_verify.get("rawId")
@@ -63,7 +64,7 @@ class RequestVerifyAccount(RequestVerifyPassKeyUseCase):
                 },
                 expected_challenge=base64url_to_bytes(challenge),
                 expected_rp_id=rp_id,
-                expected_origin="http://localhost:5000",
+                expected_origin="http://localhost:8000",
                 credential_public_key=base64url_to_bytes(public_key),
                 require_user_verification=True,
             )
@@ -80,7 +81,7 @@ class RequestVerifyAccount(RequestVerifyPassKeyUseCase):
                 "token":  jwt.encode(account_info, SECRET_KEY, algorithm="HS256")
             }
 
-        except:
+        except Exception as e:
 
             return {
                 "status": 413,
