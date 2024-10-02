@@ -3,38 +3,44 @@ from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, CheckConst
 from sqlalchemy.ext.declarative import declarative_base
 # from . import engine
 from src.comman import engine, Session
+from sqlalchemy.orm import relationship
+
 Base = declarative_base()
+
 
 class IntegrationPasskey(Base):
     __tablename__ = 'integration_passkey'
 
     id = Column(String(100), primary_key=True)
-    account_id = Column(String(100), ForeignKey('accounts.id'))
+    account_id = Column(String(100))
     credential_id = Column(String(100))
     credential_public_key = Column(String(100))
     sign_count = Column(Integer, default=0)
-    aaguid = Column(String(100)) # Mã định danh của sản phẩm dùng để xác thực
+    aaguid = Column(String(100))  # Mã định danh của sản phẩm dùng để xác thực
     fmt = Column(String(20))  # Cho phép NULL
     __table_args__ = (
-        CheckConstraint("fmt IN (fido-u2f, packed, tpm, apple, android-safetynet, android-key) OR fmt IS NULL', name='check_fmt_column"),
+        CheckConstraint(
+            "fmt IN ('fido-u2f', 'packed', 'tpm', 'apple', 'android-safetynet', 'android-key') OR fmt IS NULL", name='check_fmt_column'),
     )
     credential_type = Column(String(30), default="public_key")
     # user_verified =
     # attestation_object
-    credential_device_type = Column(String(30), Enum("platform", "cross-platform")) # platform là vân tay, nhận diện khuôn mặt ... cross-platform là USB ...
+    credential_device_type = Column(String(30), Enum("platform",
+                                                     "cross-platform"))  # platform là vân tay, nhận diện khuôn mặt ... cross-platform là USB ...
     # credential_backed_up
-    status = Column(String, Enum("active", "inactive", "delete"))
+    status = Column(String(20), Enum("active", "inactive", "delete"))
     create_on = Column(DateTime)
     update_one = Column(DateTime)
-
+    #
+    # account = relationship("Account", back_populates="integration_passkeys")
 
     async def get_integration_by_user(self):
         session = Session()
-        info_integration = session.query(IntegrationPasskey).filter_by(account_id=self.account_id, status="active").first()
+        info_integration = session.query(IntegrationPasskey).filter_by(account_id=self.account_id,
+                                                                       status="active")
         session.close()
 
         return info_integration
-
 
     async def create_integration(self):
         try:
@@ -56,8 +62,26 @@ class IntegrationPasskey(Base):
 
     async def check_credential(self):
         session = Session()
-        info_credential = session.query(IntegrationPasskey).filter(IntegrationPasskey.credential_id == self.credential_id,
-                                                        IntegrationPasskey.status != self.status).first()
+        info_credential = session.query(IntegrationPasskey).filter(
+            IntegrationPasskey.credential_id == self.credential_id,
+            IntegrationPasskey.status != self.status).first()
         session.close()
 
         return info_credential
+
+    async def list_config_integration(self):
+
+        session = Session()
+        credentials = session.query(IntegrationPasskey).filter(IntegrationPasskey.account_id == self.account_id,
+                                                               IntegrationPasskey.status != self.status).all()
+
+        session.close()
+        return credentials
+
+
+
+# session = Session()
+# c = session.query(IntegrationPasskey).filter(IntegrationPasskey.account_id == "123123j12nsdha-daskdnas12").all()
+#
+# print("c")
+# Base.metadata.create_all(engine)

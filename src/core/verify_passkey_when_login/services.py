@@ -1,4 +1,7 @@
 # from http.client import HTTPException
+import base64
+import os
+
 from fastapi import HTTPException
 from .ports import VerifyPasskeyWhenLoginUseCase
 from webauthn.helpers.structs import (
@@ -28,9 +31,6 @@ class VerifyPassKeyWhenLoginService(VerifyPasskeyWhenLoginUseCase):
             account_id = info_account.get("account_id")
 
             integrations_passkey = await self.integration_passkey.get(account_id)
-            # temp_token = jwt.encode(info_account, SECRET_KEY, algorithm="HS256")
-            #
-            # info_account.update({"temp_token": temp_token})
 
             if not integrations_passkey:
                 return {
@@ -39,32 +39,45 @@ class VerifyPassKeyWhenLoginService(VerifyPasskeyWhenLoginUseCase):
                     "data": {}
                 }
 
-            credentials = integrations_passkey.credential_id
-            public_key = integrations_passkey.credential_public_key
-            key_request_verify_passkey = account_id + "request#verify#passkey"
+            credential_ids = []
+            config_public_key = {}
 
+            for i in integrations_passkey:
+                credentials = i.credential_id
+                public_key = i.credential_public_key
+
+                credential_ids.append(PublicKeyCredentialDescriptor(id=credentials.encode("utf-8")))
+                config_public_key.update({
+                    credentials: public_key
+                })
+
+            challenge = os.urandom(64)
+            challenge_base64 = base64.b64encode(challenge)
             complex_authentication_options = generate_authentication_options(
                 rp_id=rp_id,
                 timeout=12000,
-                allow_credentials=[credentials],
+                challenge=challenge_base64,
+                allow_credentials=credential_ids,
                 user_verification=UserVerificationRequirement.REQUIRED,
             )
 
-            challenge = complex_authentication_options.challenge
+
+            # challenge = complex_authentication_options.challenge
+
             if not challenge:
-                raise HTTPException(status_code=500, detail="Challenge not create")
+                raise HTTPException(status_code=413, detail="Challenge not create")
 
-            data_save_cache = {
-                "challenge": challenge,
-                "public_key": public_key,
-            }
+            config_public_key["challenge"] = challenge_base64.decode("utf-8")
 
-            self.redis_cli.set_value(key_request_verify_passkey, data_save_cache, 300)
+            key_request_verify_passkey = account_id + "request#verify#passkey"
+
+            config_public_key = json.dumps(config_public_key)
+            self.redis_cli.set_value(key_request_verify_passkey, config_public_key, 3000)
 
             return {
                 "code": 200,
                 "status": "active",
                 "data": json.loads(options_to_json(complex_authentication_options))
             }
-        except:
+        except Exception as e:
             raise HTTPException(status_code=500, detail="Server error")

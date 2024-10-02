@@ -1,20 +1,18 @@
-from idlelib.configdialog import changes
+# from http.client import HTTPException
+from base64 import urlsafe_b64decode
 
-from .ports import RequestVerifyPassKeyUseCase
-from src.infra.connect_redis import Redis
+import jwt
+from fastapi import HTTPException
 from webauthn import (
-    generate_authentication_options,
     verify_authentication_response,
-    options_to_json,
     base64url_to_bytes,
 )
-from webauthn.helpers.structs import (
-    PublicKeyCredentialDescriptor,
-    UserVerificationRequirement,
-)
-import jwt
-from src.comman import rp_id
+
 from src.comman import SECRET_KEY
+from src.comman import rp_id
+from src.infra.connect_redis import Redis
+from .ports import RequestVerifyPassKeyUseCase
+import json
 
 class RequestVerifyAccount(RequestVerifyPassKeyUseCase):
 
@@ -28,10 +26,22 @@ class RequestVerifyAccount(RequestVerifyPassKeyUseCase):
 
             config_passkey = await self.redis_cli.get_value_by_key(convert_key)
 
+            if not config_passkey:
+                raise HTTPException(status_code=413, detail="No config")
+
+            config_passkey = json.loads(config_passkey)
             challenge = config_passkey.get("challenge")
-            public_key = config_passkey.get("public_key")
-            if not challenge or not public_key:
-                return
+
+            credential_id = data_verify.get("rawId")
+
+            if not credential_id:
+                raise HTTPException(status_code=413, detail="not access credential")
+
+            credential_id = urlsafe_b64decode(f"{credential_id}===")
+
+            public_key = config_passkey.get(credential_id)
+            if not public_key:
+                raise HTTPException(status_code=413, detail="Not config public key")
 
             authentication_verification = verify_authentication_response(
                 # Demonstrating the ability to handle a stringified JSON version of the WebAuthn response
@@ -54,8 +64,8 @@ class RequestVerifyAccount(RequestVerifyPassKeyUseCase):
                 },
                 expected_challenge=base64url_to_bytes(challenge),
                 expected_rp_id=rp_id,
-                expected_origin="http://localhost:5000",
-                credential_public_key=base64url_to_bytes("public_key"),
+                expected_origin="http://localhost:8000",
+                credential_public_key=base64url_to_bytes(public_key),
                 require_user_verification=True,
             )
 
@@ -71,7 +81,7 @@ class RequestVerifyAccount(RequestVerifyPassKeyUseCase):
                 "token":  jwt.encode(account_info, SECRET_KEY, algorithm="HS256")
             }
 
-        except:
+        except Exception as e:
 
             return {
                 "status": 413,

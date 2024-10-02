@@ -5,6 +5,8 @@ from fastapi.middleware.cors import CORSMiddleware
 # from src.router import
 from src.api import (login, verify_register_passkey, verify_passkey_when_login, request_verify_passkey, info_user_by_token, \
     register_passkey)
+
+from src.api.template.home import router as home_page
 app = FastAPI()
 
 
@@ -22,11 +24,11 @@ def register_routes(app: FastAPI) -> FastAPI:
     # app.include_router(root.router)
     app.include_router(login, prefix="/login", tags=["PassKey"])
     app.include_router(verify_register_passkey, prefix="/verify/register-passkey", tags=["PassKey"])
-    app.include_router(verify_passkey_when_login, prefix="/verify/passkey", tags=["PassKey"])
-    app.include_router(request_verify_passkey, prefix="/request/verify-passkey", tags=["PassKey"])
+    app.include_router(request_verify_passkey, prefix="/verify/passkey", tags=["PassKey"])
+    app.include_router(verify_passkey_when_login, prefix="/request/verify-passkey", tags=["PassKey"])
     app.include_router(info_user_by_token, prefix="/account/token", tags=["PassKey"])
     app.include_router(register_passkey, prefix="/register/passkey", tags=["PassKey"])
-
+    app.include_router(home_page, prefix="/home", tags=["HomePage"])
     return app
 
 
@@ -42,6 +44,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+# app.config['ENABLE_WEBAUTHN'] = False
 
 
 if __name__ == '__main__':

@@ -19,19 +19,31 @@ class IntegrationPassKeyService(VerifyRegisterPasskeyUseCase):
         self.redis_cli = redis_cli
 
     async def verify_register_passkey(self, data_verify, info_account):
-        user_id = info_account.get("user_id")
+        user_id = info_account.get("account_id")
         username = info_account.get("username")
         fullname = info_account.get("fullname")
-        credential_id = data_verify.get("credential_id")
+        response = data_verify.get('response')
+        if response is None:
+            raise
 
-        if not credential_id:
-            raise HTTPException(status_code=500, detail="No credential")
+        # credential_id = response.get('rawId')
 
-        check_credential = await self.integration_passkey.check_credential(credential_id)
-        if check_credential:
-            raise HTTPException(status_code=413, detail="Credential exits")
+        key_credential = str(user_id) + "###" + "credentials"
+        # if not credential_id:
+        #     raise HTTPException(status_code=500, detail="No credential")
 
-        challenge_key = self.redis_cli.get(str(user_id) + str(username) + str(fullname) + "challenge")
+        # check_credential = await self.integration_passkey.check_credential(credential_id)
+        # if check_credential:
+        #     raise HTTPException(status_code=413, detail="Credential exits")
+        #
+        # credential_request = [i.decode("utf-8") for i in await self.redis_cli.list_value(key_credential)]
+        #
+        # if credential_id not in credential_request and credential_id:
+        #     raise HTTPException(status_code=400, detail="Invalid credential")
+
+        convert_key = "test" + "challenge"
+        challenge_key = await self.redis_cli.get_value_by_key(convert_key)
+        print(challenge_key)
         if not challenge_key:
             raise HTTPException(status_code=413, detail="Please request before verify Passkey")
 
@@ -39,10 +51,10 @@ class IntegrationPassKeyService(VerifyRegisterPasskeyUseCase):
             registration_verification = verify_registration_response(
                 # Demonstrating the ability to handle a plain dict version of the WebAuthn response
                 credential={
-                    **data_verify
+                    **data_verify.get("response")
                 },
                 expected_challenge=challenge_key,
-                expected_origin="http://0.0.0.0:8000",
+                expected_origin='http://localhost:8000',
                 expected_rp_id=rp_id,
                 require_user_verification=True,
             )
