@@ -80,6 +80,14 @@ class IntegrationPasskey(Base):
         return credentials
 
 
+    async def get_all_config(self):
+        session = Session()
+        credentials = session.query(IntegrationPasskey).filter(
+                                                               IntegrationPasskey.status != self.status).all()
+
+        session.close()
+        return credentials
+
 
 # session = Session()
 # c = session.query(IntegrationPasskey).filter(IntegrationPasskey.account_id == "123123j12nsdha-daskdnas12").all()

@@ -7,6 +7,7 @@ from src.api import (login, verify_register_passkey, verify_passkey_when_login, 
     register_passkey)
 
 from src.api.template.home import router as home_page
+from src.core.configs_passkey import router as get_config_passkey
 app = FastAPI()
 
 
@@ -20,27 +21,27 @@ async def say_hello(name: str):
     return {"message.py": f"Hello {name}"}
 
 
-@app.get("/configs-passkey")
-async def configs_passkey():
-    return {
-        "data": [
-            {
-                "id_passkey": "123456789",
-                "username": "test1",
-                "status": "active"
-            },
-            {
-                "id_passkey": "0987654321",
-                "username": "test2",
-                "status": "active"
-            },
-            {
-                "id_passkey": "09876543222",
-                "username": "test3",
-                "status": "deactive"
-            }
-        ]
-    }
+# @app.get("/configs-passkey")
+# async def configs_passkey():
+#     return {
+#         "data": [
+#             {
+#                 "id_passkey": "123456789",
+#                 "username": "test1",
+#                 "status": "active"
+#             },
+#             {
+#                 "id_passkey": "0987654321",
+#                 "username": "test2",
+#                 "status": "active"
+#             },
+#             {
+#                 "id_passkey": "09876543222",
+#                 "username": "test3",
+#                 "status": "deactive"
+#             }
+#         ]
+#     }
 
 @app.patch("/configs-passkey")
 async def configs_passkey(body: dict):
@@ -60,6 +61,7 @@ def register_routes(app: FastAPI) -> FastAPI:
     app.include_router(info_user_by_token, prefix="/account/token", tags=["PassKey"])
     app.include_router(register_passkey, prefix="/register/passkey", tags=["PassKey"])
     app.include_router(home_page, prefix="/home", tags=["HomePage"])
+    app.include_router(get_config_passkey, prefix="/configs-passkey", tags=["PassKey"])
     return app
 
 
