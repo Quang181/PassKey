@@ -229,13 +229,30 @@
         });
 
         // code Hải viết
-        async function fetch_json(url, options = {}) {
-            const response = await fetch(url, options);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return await response.json();
-        }
+       function fetch_json(url, options) {
+        return window.fetch(url, options)
+            .then(function (r) {
+                if (!r.ok) {
+                    errorElm.innerText = "Uh oh! Something went wrong.";
+                    throw new Error(`HTTP error ${r.status}`);
+                }
+                return r.json();
+            })
+            .then(function (data) {
+                if (data.result === "error") {
+                    errorElm.innerText = data.message;
+                    throw new Error(`API error: ${data.message}`);
+                }
+                errorElm.style.display = 'none';
+                return data.data;
+            })
+            .catch(function (error) {
+                console.error(error);
+                errorElm.style.display = 'block';
+                loadingElm.style.display = 'none';
+            });
+    }
+
         registerButton.addEventListener('click', function () {
             loadingElm.style.display = 'block';
             errorElm.style.display = 'none';
@@ -247,16 +264,16 @@
             }
             )
                 .then(function (data) {
-                    data.data.user.id = b64decode(data.data.user.id);
-                    data.data.challenge = b64decode(data.data.challenge);
+                    data.user.id = b64decode(data.user.id);
+                    data.challenge = b64decode(data.challenge);
                     console.log("testtest")
-                    data.data.excludeCredentials = data.data.excludeCredentials.map(function (cred) {
+                    data.excludeCredentials = data.excludeCredentials.map(function (cred) {
                         cred.id = b64decode(cred.id);
                         return cred;
                     })
                     console.log(navigator)
                     return navigator.credentials.create({
-                        publicKey: data.data
+                        publicKey: data
                     });
 
                 })
@@ -372,14 +389,14 @@
                     }
                 })
                 .then(function (data) {
-                    data.data.challenge = b64decode(data.data.challenge);
-                    data.data.allowCredentials = data.data.allowCredentials.map(function (cred) {
+                    data.challenge = b64decode(data.challenge);
+                    data.allowCredentials = data.allowCredentials.map(function (cred) {
                         cred.id = b64decode(cred.id);
                         return cred;
                     })
                     console.log(data);
                     return navigator.credentials.get({
-                        publicKey: data.data
+                        publicKey: data
                     });
                 })
                 .then(function (response) {

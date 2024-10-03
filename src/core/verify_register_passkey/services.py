@@ -37,7 +37,7 @@ class IntegrationPassKeyService(VerifyRegisterPasskeyUseCase):
         # if check_credential:
         #     raise HTTPException(status_code=413, detail="Credential exits")
 
-        config_passkey = IntegrationPasskey(account_id=user_id, status="delete").list_config_integration()
+        config_passkey = await IntegrationPasskey(account_id=user_id, status="delete").list_config_integration()
         for i in config_passkey:
             if credential_id == i.credential_id:
                 raise HTTPException(status_code=400, detail="credential id exits")
@@ -45,7 +45,7 @@ class IntegrationPassKeyService(VerifyRegisterPasskeyUseCase):
 
         credential_request = [i.decode("utf-8") for i in await self.redis_cli.list_value(key_credential)]
 
-        if credential_id not in credential_request and credential_id:
+        if credential_id not in credential_request and credential_id and config_passkey:
             raise HTTPException(status_code=400, detail="Invalid credential")
 
         convert_key = "test" + "challenge"
