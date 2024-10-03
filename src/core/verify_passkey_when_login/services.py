@@ -1,7 +1,7 @@
 # from http.client import HTTPException
 import base64
 import os
-from idlelib.configdialog import changes
+# from idlelib.configdialog import changes
 
 from fastapi import HTTPException
 from .ports import VerifyPasskeyWhenLoginUseCase
@@ -21,6 +21,7 @@ from src.infra.connect_redis import Redis
 import json
 import jwt
 import webauthn
+from src.comman import rp
 
 class VerifyPassKeyWhenLoginService(VerifyPasskeyWhenLoginUseCase):
 
@@ -31,10 +32,7 @@ class VerifyPassKeyWhenLoginService(VerifyPasskeyWhenLoginUseCase):
     async def request_verify_passkey(self, info_account):
         try:
             account_id = info_account.get("account_id")
-
-            rp = webauthn.types.RelyingParty(id="localhost", name="RP_NAME", icon="RP_ICON")
             integrations_passkey = await self.integration_passkey.get(account_id)
-
 
             if not integrations_passkey:
                 return {
@@ -43,18 +41,27 @@ class VerifyPassKeyWhenLoginService(VerifyPasskeyWhenLoginUseCase):
                     "data": {}
                 }
 
-            public_key = []
+            public_keys = []
+            config_by_public_key = {}
+
             for i in integrations_passkey:
-                public_key.append(i.public_key)
+                pkey_alg = i.public_key_alg
+                sign_counter = i.sign_count
+                public_key = i.public_key
+
+                public_key.append(base64.b64decode(i.public_key))
+                config_by_public_key[public_key] = {
+                    "pkey_alg": pkey_alg,
+                    "sign_counter": sign_counter
+                }
+
+            # public_key = [base64.b64decode(i.public_key) for i in integrations_passkey]
 
 
             options, challenge = webauthn.get_webauthn_credentials(
-                rp=rp, existing_keys=public_key, user_verification=webauthn.types.UserVerification.Preferred,
+                rp=rp, existing_keys=public_keys, user_verification=webauthn.types.UserVerification.Preferred,
             )
 
-
-            credential_ids = []
-            config_public_key = {}
 
             # for i in integrations_passkey:
             #     credentials = i.credential_id
@@ -84,9 +91,12 @@ class VerifyPassKeyWhenLoginService(VerifyPasskeyWhenLoginUseCase):
             # config_public_key["challenge"] = changes
             #
             key_request_verify_passkey = account_id + "request#verify#passkey"
-            #
-            # config_public_key = json.dumps(config_public_key)
             self.redis_cli.set_value(key_request_verify_passkey, challenge, 3000)
+
+            if config_by_public_key:
+                key_configs_passkey = account_id + "configs##passkey"
+                config_by_public_key = json.dumps(config_by_public_key)
+                self.redis_cli.set_value(key_configs_passkey, config_by_public_key, 3000)
 
             return {
                 "code": 200,

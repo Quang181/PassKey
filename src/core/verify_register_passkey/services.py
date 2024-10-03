@@ -14,11 +14,8 @@ from src.comman import rp_id
 from fastapi import HTTPException
 from src.infra.integration_passkey import IntegrationPasskey
 import json
+from src.comman import rp, fido_metadata
 
-MDS_LOCATION = "./fido-mds.json"
-with open(MDS_LOCATION, "rb") as r:
-    metadata_json = json.load(r)
-fido_metadata = webauthn.metadata.FIDOMetadata.from_metadata(metadata_json)
 
 class IntegrationPassKeyService(VerifyRegisterPasskeyUseCase):
 
@@ -30,20 +27,16 @@ class IntegrationPassKeyService(VerifyRegisterPasskeyUseCase):
     async def verify_register_passkey(self, data_verify, info_account):
         user_id = info_account.get("account_id")
         response = data_verify.get('response')
-        rp = webauthn.types.RelyingParty(id="localhost", name="RP_NAME", icon="RP_ICON")
+        raw_id = data_verify.get("id")
+
+        if not raw_id or not response:
+            raise HTTPException(status_code=400, detail="Data in valid")
+
         if response is None:
             raise
 
-
-        # credential_id = base64url_to_bytes(credential_id)
-        # check_credential = await self.integration_passkey.check_credential(credential_id)
-        # if check_credential:
-        #     raise HTTPException(status_code=413, detail="Credential exits")
-
-
-        convert_key = "test" + "challenge"
+        convert_key = user_id + "challenge"
         challenge_key = await self.redis_cli.get_value_by_key(convert_key)
-        print(challenge_key)
         if not challenge_key:
             raise HTTPException(status_code=413, detail="Please request before verify Passkey")
 
@@ -63,7 +56,6 @@ class IntegrationPassKeyService(VerifyRegisterPasskeyUseCase):
                 attestation_b64=response["attestation"],
                 fido_metadata=fido_metadata
             )
-
 
             await self.integration_passkey.create_info_register_passkey(self.get_data_create(auth_data, info_account))
 

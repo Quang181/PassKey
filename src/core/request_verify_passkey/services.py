@@ -26,6 +26,8 @@ import cryptography.hazmat.primitives.asymmetric.x25519
 import cryptography.hazmat.primitives.asymmetric.x448
 import os
 import webauthn
+from src.comman import rp
+from fastapi import HTTPException
 
 class RequestVerifyAccount(RequestVerifyPassKeyUseCase):
 
@@ -35,17 +37,26 @@ class RequestVerifyAccount(RequestVerifyPassKeyUseCase):
     async def request_verify_passkey(self, account_info, data_verify):
         try:
             account_id = account_info.get('account_id')
-            convert_key = account_id + "request#verify#passkey"
+            key_configs_passkey = account_id + "configs##passkey"
+            key_request_verify_passkey = account_id + "request#verify#passkey"
+            public_key = data_verify.get("raw_id")
+            config_passkey = await self.redis_cli.get_value_by_key(key_configs_passkey)
+            if not config_passkey:
+                raise HTTPException(status_code=413, detail="No configs found")
 
-            config_passkey = await self.redis_cli.get_value_by_key(convert_key)
-            challenge = "challenge"
-            test = {}
-            pkey_alg = int(test["pkey_alg"])
-            sign_counter = int(test["sign_counter"])
+            challenge = await  self.redis_cli.get_value_by_key(key_request_verify_passkey)
+            if not challenge:
+                raise HTTPException(status_code=413, detail="No challenge found")
 
-            rp = webauthn.types.RelyingParty(id="localhost", name="RP_NAME", icon="RP_ICON")
-            public_keys = ""
-            pkey = cryptography.hazmat.primitives.serialization.load_pem_public_key(public_keys.encode())
+            config_passkey =  json.loads(config_passkey)
+            config_public_key = config_passkey.get(public_key)
+            if not config_public_key:
+                raise HTTPException(status_code=413, detail="Public key not exits")
+
+            pkey_alg = int(config_public_key["pkey_alg"])
+            sign_counter = int(config_public_key["sign_counter"])
+
+            pkey = cryptography.hazmat.primitives.serialization.load_pem_public_key(public_key.encode())
 
             response = data_verify.get("response")
 
