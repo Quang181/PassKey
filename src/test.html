@@ -61,6 +61,52 @@
             height: 300px;
             display: none;
         }
+
+
+         .switch {
+        position: relative;
+        display: inline-block;
+        width: 34px;
+        height: 20px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #2196F3;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(14px);
+        }
     </style>
 </head>
 
@@ -140,6 +186,40 @@
                 document.getElementById('registerPasskeyButton').style.display = 'block';
                 document.getElementById('authenticatePasskeyButton').style.display = 'block';
                 document.getElementById('list_user').style.display = 'block';
+
+                $.ajax({
+                        encode: true,
+                        dataType: 'json',
+                        type: "GET",
+                        url: 'http://localhost:8000/configs-passkey',
+                        headers: {
+                            "Authorization": `Bearer ${authToken}`
+                        },
+                        success: function (res) {
+                            var html = '';
+                            if (res && res.data) {
+                                $(res.data).each(function (index, element) {
+                                    const isChecked = element.status === 'active' ? 'checked' : '';
+                                    html += '<tr>\
+                                        <td>' + element.username + '</td>\
+                                        <td>' + element.id_passkey + '</td>\
+                                        <td>\
+                                            <label class="switch">\
+                                                <input type="checkbox" ' + isChecked + ' data-id="' + element.id_passkey + '" class="status-toggle">\
+                                                <span class="slider round"></span>\
+                                            </label>\
+                                        </td>\
+                                    </tr>';
+                                });
+                            } else {
+                                html = '<tr><td colspan="3">Không có dữ liệu nào được tìm thấy.</td></tr>';
+                            }
+                            $('#list_user tbody').html(html);  // Chèn dữ liệu vào bảng
+                        },
+                        error: function () {
+                            alert("Lỗi khi tải dữ liệu configs-passkey");
+                        }
+                    });
             }
             else {
 
@@ -158,7 +238,7 @@
         registerButton.addEventListener('click', function () {
             loadingElm.style.display = 'block';
             errorElm.style.display = 'none';
-            fetch_json("http://123.30.48.240:8000/register/passkey", {
+            fetch_json("http://localhost:8000/register/passkey", {
                 headers: {
                     "Authorization": `Bearer ${authToken}`
                 }
@@ -197,6 +277,7 @@
                     loadingElm.style.display = 'none';
                 })
                 .catch(function (error) {
+                    alert("Đăng ký lỗi")
                     errorElm.style.display = 'block';
                     loadingElm.style.display = 'none';
                     console.log(error)
@@ -321,6 +402,7 @@
                     loadingElm.style.display = 'none';
                 })
                 .catch(function () {
+                    alert("Xác thực lỗi ")
                     errorElm.style.display = 'block';
                     loadingElm.style.display = 'none';
                 });
@@ -353,6 +435,64 @@
                 $('#list_user').html(html);
             }
         });
+
+        $(document).on('change', '.status-toggle', function() {
+                const id = $(this).data('id');
+                const newStatus = this.checked ? 'active' : 'deactive';
+
+                $.ajax({
+                    url: 'http://localhost:8000/configs-passkey',
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    data: JSON.stringify({
+                        id: id,
+                        status: newStatus
+                    }),
+                    success: function(response) {
+                        alert('Cập nhật trạng thái thành công!');
+                    },
+                    error: function() {
+                        alert('Lỗi khi cập nhật trạng thái.');
+                    }
+                });
+            });
+
+              $.ajax({
+                        encode: true,
+                        dataType: 'json',
+                        type: "GET",
+                        url: 'http://localhost:8000/configs-passkey',
+                        headers: {
+                            "Authorization": `Bearer ${authToken}`
+                        },
+                        success: function (res) {
+                            var html = '';
+                            if (res && res.data) {
+                                $(res.data).each(function (index, element) {
+                                    const isChecked = element.status === 'active' ? 'checked' : '';
+                                    html += '<tr>\
+                                        <td>' + element.username + '</td>\
+                                        <td>' + element.id_passkey + '</td>\
+                                        <td>\
+                                            <label class="switch">\
+                                                <input type="checkbox" ' + isChecked + ' data-id="' + element.id_passkey + '" class="status-toggle">\
+                                                <span class="slider round"></span>\
+                                            </label>\
+                                        </td>\
+                                    </tr>';
+                                });
+                            } else {
+                                html = '<tr><td colspan="3">Không có dữ liệu nào được tìm thấy.</td></tr>';
+                            }
+                            $('#list_user tbody').html(html);  // Chèn dữ liệu vào bảng
+                        },
+                        error: function () {
+                            alert("Lỗi khi tải dữ liệu configs-passkey");
+                        }
+                    });
     </script>
 
 </body>

@@ -8,6 +8,7 @@ from src.api import (login, verify_register_passkey, verify_passkey_when_login, 
 
 from src.api.template.home import router as home_page
 from src.core.configs_passkey import router as get_config_passkey
+from src.core.update_config_passkey import router as update_config
 app = FastAPI()
 
 
@@ -62,6 +63,8 @@ def register_routes(app: FastAPI) -> FastAPI:
     app.include_router(register_passkey, prefix="/register/passkey", tags=["PassKey"])
     app.include_router(home_page, prefix="/home", tags=["HomePage"])
     app.include_router(get_config_passkey, prefix="/configs-passkey", tags=["PassKey"])
+    app.include_router(update_config, prefix="/configs-passkey", tags=["PassKey"])
+
     return app
 
 

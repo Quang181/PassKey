@@ -88,6 +88,22 @@ class IntegrationPasskey(Base):
         session.close()
         return credentials
 
+    async def get_config_by_id(self, id_config):
+        session = Session()
+        credentials = session.query(IntegrationPasskey).filter(
+            IntegrationPasskey.id == id_config).all()
+
+        session.close()
+        return credentials
+
+    async def update_status_config(self, id, status):
+        session = Session()
+        credentials = session.query(IntegrationPasskey).filter(IntegrationPasskey.id == id).update({"status": status})
+        session.commit()
+        session.close()
+
+        return credentials
+
 
 # session = Session()
 # c = session.query(IntegrationPasskey).filter(IntegrationPasskey.account_id == "123123j12nsdha-daskdnas12").all()
