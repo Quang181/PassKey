@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login with Passkey</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+        integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+
+        .container {
+            padding: 50px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            text-align: center;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Ẩn nút đăng ký và đăng nhập passkey ban đầu */
+        #registerPasskeyButton,
+        #authenticatePasskeyButton {
+            display: none;
+        }
+
+        .table {
+            width: 50%;
+            height: 300px;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h2>Login</h2>
+        <input type="text" id="username" placeholder="Username" required>
+        <input type="password" id="password" placeholder="Password" required>
+        <button id="loginButton">Login</button>
+        <div class="alert alert-danger" id="error" style="display: none;"></div>
+        <div class="alert alert-secondary" id="loading" style="display: none;">
+            Loading...
+        </div>
+
+        <h3>OR</h3>
+        <!-- Nút đăng ký và đăng nhập passkey, sẽ ẩn trước khi login thành công -->
+        <button id="registerPasskeyButton">Register Passkey</button>
+        <button id="authenticatePasskeyButton">Authenticate with Passkey</button>
+    </div>
+    <table class="table table-striped" id="list_user">
+        <thead>
+            <tr>
+                <th scope="col">id</th>
+                <th scope="col">username</th>
+                <th scope="col">status</th>
+            </tr>
+        </thead>
+        <tbody>
+
+        </tbody>
+    </table>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct"
+        crossorigin="anonymous"></script>
+
+    <script>
+        let authToken = '';
+        var noWebAuthnError = document.getElementById("no-webauthn-error");
+        var hasWebAuthn = document.getElementById("has-webauthn");
+        var registerButton = document.getElementById('registerPasskeyButton');
+        var loginButton = document.getElementById("login-button");
+        var errorElm = document.getElementById("error");
+        var loadingElm = document.getElementById("loading");
+        var authenticatePasskeyButton = document.getElementById("authenticatePasskeyButton");
+
+        function b64decode(input) {
+            return Uint8Array.from(window.atob(input), c => c.charCodeAt(0));
+        }
+        function b64encode(input) {
+            return window.btoa(String.fromCharCode.apply(null, new Uint8Array(input)));
+        }
+        // Login logic
+        document.getElementById('loginButton').addEventListener('click', async () => {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            // Gửi yêu cầu đăng nhập tới server
+            const response = await fetch('http://123.30.48.240:8000/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username: username,
+                    password: password,
+                }),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                authToken = data.token;  // Lấy token từ server
+                alert('Login successful!');
+
+                // Hiển thị nút đăng ký và đăng nhập passkey sau khi login thành công
+                document.getElementById('registerPasskeyButton').style.display = 'block';
+                document.getElementById('authenticatePasskeyButton').style.display = 'block';
+                document.getElementById('list_user').style.display = 'block';
+            }
+            else {
+
+                alert(`Đăng nhập ${username} thất bại!`);
+            }
+        });
+
+        // code Hải viết
+        async function fetch_json(url, options = {}) {
+            const response = await fetch(url, options);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return await response.json();
+        }
+        registerButton.addEventListener('click', function () {
+            loadingElm.style.display = 'block';
+            errorElm.style.display = 'none';
+            fetch_json("http://123.30.48.240:8000/register/passkey", {
+                headers: {
+                    "Authorization": `Bearer ${authToken}`
+                }
+            }
+            )
+                .then(function (data) {
+                    data.data.user.id = b64decode(data.data.user.id);
+                    data.data.challenge = b64decode(data.data.challenge);
+                    console.log("testtest")
+                    data.data.excludeCredentials = data.data.excludeCredentials.map(function (cred) {
+                        cred.id = b64decode(cred.id);
+                        return cred;
+                    })
+                    console.log(navigator)
+                    return navigator.credentials.create({
+                        publicKey: data.data
+                    });
+
+                })
+                .then(function (response) {
+                    let data = {
+                        response,
+
+                    }
+                    console.log(response)
+                    return fetch_json("http://123.30.48.240:8000/verify/register-passkey", {
+                        method: "POST",
+                        headers: {
+                            "Authorization": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjoiMTIzMTIzajEybnNkaGEtZGFza2RuYXMxMiIsInVzZXJuYW1lIjoicXVhbmcxODEiLCJmdWxsbmFtZSI6I" +
+                                "k1pbmggUXVhbmciLCJlbWFpbCI6ImVxdWFuZzE4MUBnbWFpbC5jb20iLCJleHAiOjE3Mjc5NDM5Mzd9.SSLfTVhnXC-YTu2gW597R3an6RtYLM8KkLw3mpSwGaA",
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(data)
+                    });
+                })
+
+                .then(function (data) {
+                    loadingElm.style.display = 'none';
+                })
+                .catch(function (error) {
+                    errorElm.style.display = 'block';
+                    loadingElm.style.display = 'none';
+                    console.log(error)
+                });
+        });
+
+        // Register Passkey logic
+        // document.getElementById('registerPasskeyButton').addEventListener('click', async () => {
+        //     const data_response = await fetch("http://localhost:8000/register/passkey", {
+        //         // method: 'GET',
+        //         headers: {
+        //             'Authorization': `Bearer ${authToken}`,  // Gửi token trong header Authorization
+        //         },
+        //     });
+        //
+        //     if (data_response.ok){
+        //         const data = await data_response.json();
+        //         data.user.id = b64decode(data.user.id);
+        //         data.challenge = b64decode(data.challenge);
+        //         console.log("testtest")
+        //         data.excludeCredentials = data.excludeCredentials.map(function (cred) {
+        //             cred.id = b64decode(cred.id);
+        //             return cred;
+        //         })
+        //         console.log(navigator)
+        //         return navigator.credentials.create({
+        //             publicKey: data
+        //         });
+        //     }
+        //
+        // });
+
+
+        // }).then(function (response) {
+        //             let data = {
+        //                 response,
+        //
+        //             }
+        //             console.log(response)
+        //             return fetch_json("http://localhost:8000/verify/register-passkey", {
+        //                 method: "POST",
+        //                 headers: {
+        //                     "Authorization": `Bearer ${authToken}`
+        //                 },
+        //                 body: JSON.stringify(data)
+        //             });
+        //         })
+        //
+        //         .then(function (data) {
+        //            alert("Dang ky thanh cong")
+        //         })
+        //         .catch(function (error) {
+        //             alert("Loi")
+        //             // errorElm.style.display = 'block';
+        //             // loadingElm.style.display = 'none';
+        //             // console.log(error)
+        //         });
+
+        // const credential = await navigator.credentials.create({
+        //     publicKey
+        // });
+        //
+        // const registerResponse = await fetch('/webauthn/register', {
+        //     method: 'POST',
+        //     headers: {
+        //         'Content-Type': 'application/json',
+        //         'Authorization': `Bearer ${authToken}`,  // Gửi token trong header Authorization
+        //     },
+        //     body: JSON.stringify(credential),
+        // });
+        //
+        // if (registerResponse.ok) {
+        //     alert('Passkey registered successfully!');
+        // } else {
+        //     alert('Passkey registration failed!');
+        //     // }
+        // });
+
+        // Authenticate with Passkey logic
+        authenticatePasskeyButton.addEventListener('click', async () => {
+            loadingElm.style.display = 'block';
+            errorElm.style.display = 'none';
+            fetch_json("http://123.30.48.240:8000/request/verify-passkey",
+                {
+                    method: "GET",
+                    headers: {
+                        "Authorization": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjoiMTIzMTIzajEybnNkaGEtZGFza2RuYXMxMiIsInVzZXJuYW1lIjoicXVhbmcxODEiLCJmdWxsb" +
+                            "mFtZSI6Ik1pbmggUXVhbmciLCJlbWFpbCI6ImVxdWFuZzE4MUBnbWFpbC5jb20iLCJleHAiOjE3Mjc5NDM5Mzd9.SSLfTVhnXC-YTu2gW597R3an6RtYLM8KkLw3mpSwGaA",
+                    }
+                })
+                .then(function (data) {
+                    data.challenge = b64decode(data.challenge);
+                    data.allowCredentials = data.allowCredentials.map(function (cred) {
+                        cred.id = b64decode(cred.id);
+                        return cred;
+                    })
+                    console.log(data);
+                    return navigator.credentials.get({
+                        publicKey: data
+                    });
+                })
+                .then(function (response) {
+                    let data = {
+                        // response: {
+                        //     data: b64encode(response.response.clientDataJSON),
+                        //     authenticator: b64encode(response.response.authenticatorData),
+                        //     signature: b64encode(response.response.signature),
+                        //     user: b64encode(response.response.userHandle),
+                        // }
+                        // response: {
+                        response
+                        // }
+                    }
+                    return fetch_json("http://123.30.48.240:8000/verify/passkey", {
+                        method: "POST",
+                        headers: {
+                            "Authorization": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjoiMTIzMTIzajEybnNkaGEtZGFza2RuYXMxMiIsInVzZXJuYW1lIjoicXVhbmcxODEiLCJmdWx" +
+                                "sbmFtZSI6Ik1pbmggUXVhbmciLCJlbWFpbCI6ImVxdWFuZzE4MUBnbWFpbC5jb20iLCJleHAiOjE3Mjc5NDM5Mzd9.SSLfTVhnXC-YTu2gW597R3an6RtYLM8KkLw3mpSwGaA",
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(data)
+                    });
+                })
+                .then(function (data) {
+                    loadingElm.style.display = 'none';
+                })
+                .catch(function () {
+                    errorElm.style.display = 'block';
+                    loadingElm.style.display = 'none';
+                });
+        });
+
+
+        // get dữ liệu ra bẳng
+
+        $.ajax({
+            encode: true,
+            dataType: 'jsonp',
+            type: "GET",
+            url: 'http://123.30.48.240:8000/request/verify-passkey',
+            success: function (res) {
+                var html = '';
+                if (res && res.data) {
+                    $(res.data).each(function (index, element) {
+                        html += '<tr>\
+                            <td>' + element.username + '</td>\
+                            <td>' + element.id_passkey + '</td>\
+                            <td>' + element.status + '</td>\
+                        </tr>';
+                    });
+                } else {
+                    html = '<tr><td colspan="3">Không có dữ liệu nào được tìm thấy.</td></tr>';
+                }
+                $('#list_user').html(html);
+            }
+        });
+    </script>
+
+</body>
+
+</html>
