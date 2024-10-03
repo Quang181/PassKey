@@ -1,3 +1,4 @@
+from OpenSSL.rand import status
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, CheckConstraint, Enum, LargeBinary
 from sqlalchemy.ext.declarative import declarative_base
 # from . import engine
@@ -6,27 +7,16 @@ from sqlalchemy.orm import relationship
 
 Base = declarative_base()
 
-
 class IntegrationPasskey(Base):
     __tablename__ = 'integration_passkey'
 
     id = Column(String(100), primary_key=True)
     account_id = Column(String(100))
-    credential_id = Column(LargeBinary(1024))
-    credential_public_key = Column(LargeBinary(1024))
-    sign_count = Column(Integer, default=0)
-    aaguid = Column(String(100))  # Mã định danh của sản phẩm dùng để xác thực
-    fmt = Column(String(20))  # Cho phép NULL
-    __table_args__ = (
-        CheckConstraint(
-            "fmt IN ('fido-u2f', 'packed', 'tpm', 'apple', 'android-safetynet', 'android-key', 'none')", name='check_fmt_column'),
-    )
-    credential_type = Column(String(30), default="public_key")
-    # user_verified =
-    # attestation_object
-    credential_device_type = Column(String(30), Enum("platform",
-                                                     "cross-platform"))  # platform là vân tay, nhận diện khuôn mặt ... cross-platform là USB ...
-    # credential_backed_up
+    sign_count = Column(Integer)
+    aaguid = Column(String(1024))
+    attestation = Column(String, default=0)
+    public_key_alg = Column(String(100))  # Mã định danh của sản phẩm dùng để xác thực
+    public_key = Column(String(20))  # Cho phép NULL
     status = Column(String(20), Enum("active", "inactive", "delete"))
     create_on = Column(DateTime)
     update_one = Column(DateTime)
@@ -45,12 +35,24 @@ class IntegrationPasskey(Base):
         try:
             session = Session()
 
-            info_integration = IntegrationPasskey(id=self.id, account_id=self.account_id,
-                                                  credential_id=self.credential_id,
-                                                  credential_public_key=self.credential_public_key,
-                                                  sign_count=self.sign_count, aaguid=self.aaguid,
-                                                  fmt=self.fmt, create_on=self.create_on, update_one=self.update_one,
-                                                  status=self.status, credential_type=self.credential_type, credential_device_type=self.credential_device_type)
+            # return {
+            #     "id": cls.gen_id_account(),
+            #     "account_id": info_account.get("account_id"),
+            #     "sign_count": data_verify.sign_count,
+            #     "aaguid": data_verify.attested_data.aaguid,
+            #     "attestation": data_verify.attestation,
+            #     "public_key_alg": data_verify.public_key_alg,
+            #     "public_key": data_verify.public_key,
+            #     "create_on": cls.get_time_now(),
+            #     "update_one": cls.get_time_now(),
+            #     "status": "active"
+            # }
+
+            info_integration = IntegrationPasskey(id=self.id, account_id=self.account_id, sign_count=self.sign_count,
+                                                  aaguid=self.aaguid, attestation=self.attestation,
+                                                  public_key_alg=self.public_key_alg, public_key=self.public_key,
+                                                  create_on=self.create_on, update_one=self.update_one,
+                                                  status=self.status)
             session.add(info_integration)
             session.commit()
             session.close()
@@ -61,14 +63,14 @@ class IntegrationPasskey(Base):
 
         return status_create
 
-    async def check_credential(self):
-        session = Session()
-        info_credential = session.query(IntegrationPasskey).filter(
-            IntegrationPasskey.credential_id == self.credential_id,
-            IntegrationPasskey.status != self.status).first()
-        session.close()
-
-        return info_credential
+    # async def check_credential(self):
+    #     session = Session()
+    #     info_credential = session.query(IntegrationPasskey).filter(
+    #         IntegrationPasskey.credential_id == self.credential_id,
+    #         IntegrationPasskey.status != self.status).first()
+    #     session.close()
+    #
+    #     return info_credential
 
     async def list_config_integration(self):
 
