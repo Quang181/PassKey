@@ -269,6 +269,7 @@
                     return fetch_json("http://123.30.48.240:8000/verify/register-passkey", {
                         method: "POST",
                         headers: {
+                             "Content-Type": "application/json",
                              "Authorization": `Bearer ${authToken}`
                         },
                         body: JSON.stringify(data)
@@ -366,6 +367,7 @@
                 {
                     method: "GET",
                     headers: {
+                         "Content-Type": "application/json",
                         "Authorization": `Bearer ${authToken}`
                     }
                 })
@@ -395,6 +397,7 @@
                     return fetch_json("http://localhost:8000/verify/passkey", {
                         method: "POST",
                         headers: {
+                             "Content-Type": "application/json",
                              "Authorization": `Bearer ${authToken}`
                         },
                         body: JSON.stringify(data)
@@ -419,6 +422,7 @@
             type: "GET",
             url: 'http://localhost:8000/configs-passkey',
             headers: {
+                 "Content-Type": "application/json",
                  "Authorization": `Bearer ${authToken}`
             },
             success: function (res) {
@@ -468,6 +472,7 @@
                         type: "GET",
                         url: 'http://localhost:8000/configs-passkey',
                         headers: {
+                             "Content-Type": "application/json",
                             "Authorization": `Bearer ${authToken}`
                         },
                         success: function (res) {
