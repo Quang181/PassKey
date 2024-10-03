@@ -1,3 +1,4 @@
+from main import configs_passkey
 from .ports import VerifyRegisterPasskeyUseCase, VerifyRegisterPasskeyRepository
 # from src.message import
 from webauthn import (
@@ -10,6 +11,7 @@ import uuid
 import datetime
 from src.comman import rp_id
 from fastapi import HTTPException
+from src.infra.integration_passkey import IntegrationPasskey
 
 class IntegrationPassKeyService(VerifyRegisterPasskeyUseCase):
 
@@ -26,14 +28,20 @@ class IntegrationPassKeyService(VerifyRegisterPasskeyUseCase):
             raise
 
         credential_id = response.get('rawId')
-
         key_credential = str(user_id) + "###" + "credentials"
         if not credential_id:
             raise HTTPException(status_code=500, detail="No credential")
 
-        check_credential = await self.integration_passkey.check_credential(credential_id)
-        if check_credential:
-            raise HTTPException(status_code=413, detail="Credential exits")
+        credential_id = base64url_to_bytes(credential_id)
+        # check_credential = await self.integration_passkey.check_credential(credential_id)
+        # if check_credential:
+        #     raise HTTPException(status_code=413, detail="Credential exits")
+
+        config_passkey = IntegrationPasskey(account_id=user_id, status="delete").list_config_integration()
+        for i in config_passkey:
+            if credential_id == i.credential_id:
+                raise HTTPException(status_code=400, detail="credential id exits")
+
 
         credential_request = [i.decode("utf-8") for i in await self.redis_cli.list_value(key_credential)]
 

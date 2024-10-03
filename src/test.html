@@ -193,6 +193,7 @@
                         type: "GET",
                         url: 'http://localhost:8000/configs-passkey',
                         headers: {
+                            "Content-Type": "application/json",
                             "Authorization": `Bearer ${authToken}`
                         },
                         success: function (res) {
@@ -240,6 +241,7 @@
             errorElm.style.display = 'none';
             fetch_json("http://localhost:8000/register/passkey", {
                 headers: {
+                    "Content-Type": "application/json",
                     "Authorization": `Bearer ${authToken}`
                 }
             }
