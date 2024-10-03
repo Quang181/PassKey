@@ -31,7 +31,7 @@ class RequestVerifyAccount(RequestVerifyPassKeyUseCase):
                 raise HTTPException(status_code=413, detail="No config")
 
             config_passkey = json.loads(config_passkey)
-            challenge = config_passkey.get("challenge")
+            challenge = config_passkey.get("challenge").encode()
             response = data_verify.get("response")
             credential_id = response.get("rawId")
 
@@ -65,10 +65,10 @@ class RequestVerifyAccount(RequestVerifyPassKeyUseCase):
                 credential={
                     **response
                 },
-                expected_challenge=base64url_to_bytes(challenge),
+                expected_challenge=challenge,
                 expected_rp_id=rp_id,
                 expected_origin="http://localhost:8000",
-                credential_public_key=base64url_to_bytes(public_key),
+                credential_public_key=public_key,
                 require_user_verification=True,
             )
 

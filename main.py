@@ -7,6 +7,8 @@ from src.api import (login, verify_register_passkey, verify_passkey_when_login, 
     register_passkey)
 
 from src.api.template.home import router as home_page
+from src.core.configs_passkey import router as get_config_passkey
+from src.core.update_config_passkey import router as update_config
 app = FastAPI()
 
 
@@ -20,6 +22,37 @@ async def say_hello(name: str):
     return {"message.py": f"Hello {name}"}
 
 
+# @app.get("/configs-passkey")
+# async def configs_passkey():
+#     return {
+#         "data": [
+#             {
+#                 "id_passkey": "123456789",
+#                 "username": "test1",
+#                 "status": "active"
+#             },
+#             {
+#                 "id_passkey": "0987654321",
+#                 "username": "test2",
+#                 "status": "active"
+#             },
+#             {
+#                 "id_passkey": "09876543222",
+#                 "username": "test3",
+#                 "status": "deactive"
+#             }
+#         ]
+#     }
+
+@app.patch("/configs-passkey")
+async def configs_passkey(body: dict):
+    return {
+        "data": {
+            "code": 200,
+            "message": "success"
+        }
+    }
+
 def register_routes(app: FastAPI) -> FastAPI:
     # app.include_router(root.router)
     app.include_router(login, prefix="/login", tags=["PassKey"])
@@ -29,6 +62,9 @@ def register_routes(app: FastAPI) -> FastAPI:
     app.include_router(info_user_by_token, prefix="/account/token", tags=["PassKey"])
     app.include_router(register_passkey, prefix="/register/passkey", tags=["PassKey"])
     app.include_router(home_page, prefix="/home", tags=["HomePage"])
+    app.include_router(get_config_passkey, prefix="/configs-passkey", tags=["PassKey"])
+    app.include_router(update_config, prefix="/configs-passkey", tags=["PassKey"])
+
     return app
 
 
@@ -45,6 +81,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 # app.config['ENABLE_WEBAUTHN'] = False
+
+
 
 
 if __name__ == '__main__':

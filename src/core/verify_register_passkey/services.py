@@ -20,26 +20,25 @@ class IntegrationPassKeyService(VerifyRegisterPasskeyUseCase):
 
     async def verify_register_passkey(self, data_verify, info_account):
         user_id = info_account.get("account_id")
-        username = info_account.get("username")
-        fullname = info_account.get("fullname")
         response = data_verify.get('response')
+
         if response is None:
             raise
 
-        # credential_id = response.get('rawId')
+        credential_id = response.get('rawId')
 
         key_credential = str(user_id) + "###" + "credentials"
-        # if not credential_id:
-        #     raise HTTPException(status_code=500, detail="No credential")
+        if not credential_id:
+            raise HTTPException(status_code=500, detail="No credential")
 
-        # check_credential = await self.integration_passkey.check_credential(credential_id)
-        # if check_credential:
-        #     raise HTTPException(status_code=413, detail="Credential exits")
-        #
-        # credential_request = [i.decode("utf-8") for i in await self.redis_cli.list_value(key_credential)]
-        #
-        # if credential_id not in credential_request and credential_id:
-        #     raise HTTPException(status_code=400, detail="Invalid credential")
+        check_credential = await self.integration_passkey.check_credential(credential_id)
+        if check_credential:
+            raise HTTPException(status_code=413, detail="Credential exits")
+
+        credential_request = [i.decode("utf-8") for i in await self.redis_cli.list_value(key_credential)]
+
+        if credential_id not in credential_request and credential_id:
+            raise HTTPException(status_code=400, detail="Invalid credential")
 
         convert_key = "test" + "challenge"
         challenge_key = await self.redis_cli.get_value_by_key(convert_key)
@@ -64,6 +63,7 @@ class IntegrationPassKeyService(VerifyRegisterPasskeyUseCase):
             return {
                 "code": 200
             }
+
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 
