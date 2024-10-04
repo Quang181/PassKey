@@ -27,7 +27,7 @@ from src.comman import rp_name, rp_id
 import json
 from src.infra.connect_redis import Redis
 import base64
-import web
+from src import webauthn
 
 class RegisterPasskeyService(RegistryPassKeyUseCase):
 

@@ -20,7 +20,7 @@ from src.message import InternalServerError
 from src.infra.connect_redis import Redis
 import json
 import jwt
-import webauthn
+from src import webauthn
 from src.comman import rp
 
 class VerifyPassKeyWhenLoginService(VerifyPasskeyWhenLoginUseCase):
@@ -45,14 +45,16 @@ class VerifyPassKeyWhenLoginService(VerifyPasskeyWhenLoginUseCase):
             config_by_public_key = {}
 
             for i in integrations_passkey:
+                cre_id = i.gre_id
                 pkey_alg = i.public_key_alg
                 sign_counter = i.sign_count
                 public_key = i.public_key
 
                 public_key.append(base64.b64decode(i.public_key))
-                config_by_public_key[public_key] = {
+                config_by_public_key[cre_id] = {
                     "pkey_alg": pkey_alg,
-                    "sign_counter": sign_counter
+                    "sign_counter": sign_counter,
+                    "public_key": base64.b64decode(public_key),
                 }
 
             # public_key = [base64.b64decode(i.public_key) for i in integrations_passkey]
