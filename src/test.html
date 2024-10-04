@@ -406,6 +406,7 @@
                 .then(function (response) {
                     let data = {
                         response: {
+                            raw_id: b64encode(response.rawId),
                             data: b64encode(response.response.clientDataJSON),
                             authenticator: b64encode(response.response.authenticatorData),
                             signature: b64encode(response.response.signature),

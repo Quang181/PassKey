@@ -59,11 +59,11 @@ class VerifyPassKeyWhenLoginService(VerifyPasskeyWhenLoginUseCase):
                 sign_counter = i.sign_count
                 public_key = i.public_key
 
-                public_key.append(base64.b64decode(cre_id))
+                public_keys.append(base64.b64decode(cre_id))
                 config_by_public_key[cre_id] = {
                     "pkey_alg": pkey_alg,
                     "sign_counter": sign_counter,
-                    "public_key": base64.b64decode(public_key),
+                    "public_key": public_key,
                 }
 
             # public_key = [base64.b64decode(i.public_key) for i in integrations_passkey]

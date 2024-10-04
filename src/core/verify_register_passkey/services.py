@@ -44,6 +44,7 @@ class IntegrationPassKeyService(VerifyRegisterPasskeyUseCase):
         if response is None:
             raise
 
+
         convert_key = user_id + "challenge"
         challenge_key = await self.redis_cli.get_value_by_key(convert_key)
         if not challenge_key:
@@ -60,7 +61,6 @@ class IntegrationPassKeyService(VerifyRegisterPasskeyUseCase):
             #     expected_rp_id=rp_id,
             #     require_user_verification=True,
             # )
-            rp.id = rp.id + ":8000"
             auth_data = webauthn.verify_create_webauthn_credentials(
                 rp=rp, challenge_b64=challenge_key.decode(), client_data_b64=response["data"],
                 attestation_b64=response["attestation"],

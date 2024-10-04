@@ -49,7 +49,8 @@ class RequestVerifyAccount(RequestVerifyPassKeyUseCase):
             account_id = account_info.get('account_id')
             key_configs_passkey = account_id + "configs##passkey"
             key_request_verify_passkey = account_id + "request#verify#passkey"
-            cre_id = data_verify.get("raw_id")
+            response = data_verify.get("response")
+            cre_id = response.get("raw_id")
             config_passkey = await self.redis_cli.get_value_by_key(key_configs_passkey)
             if not config_passkey:
                 raise HTTPException(status_code=413, detail="No configs found")
@@ -72,7 +73,6 @@ class RequestVerifyAccount(RequestVerifyPassKeyUseCase):
 
             pkey = cryptography.hazmat.primitives.serialization.load_pem_public_key(public_key.encode())
 
-            response = data_verify.get("response")
 
             auth_data = webauthn.verify_get_webauthn_credentials(
                 challenge_b64=challenge, client_data_b64=response["data"], authenticator_b64=response["authenticator"],
