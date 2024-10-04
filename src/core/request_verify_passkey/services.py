@@ -25,7 +25,7 @@ import cryptography.hazmat.primitives.asymmetric.ec
 import cryptography.hazmat.primitives.asymmetric.x25519
 import cryptography.hazmat.primitives.asymmetric.x448
 import os
-import webauthn
+from src import webauthn
 from src.comman import rp
 from fastapi import HTTPException
 
@@ -39,7 +39,7 @@ class RequestVerifyAccount(RequestVerifyPassKeyUseCase):
             account_id = account_info.get('account_id')
             key_configs_passkey = account_id + "configs##passkey"
             key_request_verify_passkey = account_id + "request#verify#passkey"
-            public_key = data_verify.get("raw_id")
+            cre_id = data_verify.get("raw_id")
             config_passkey = await self.redis_cli.get_value_by_key(key_configs_passkey)
             if not config_passkey:
                 raise HTTPException(status_code=413, detail="No configs found")
@@ -49,9 +49,9 @@ class RequestVerifyAccount(RequestVerifyPassKeyUseCase):
                 raise HTTPException(status_code=413, detail="No challenge found")
 
             config_passkey =  json.loads(config_passkey)
-            config_public_key = config_passkey.get(public_key)
+            config_public_key = config_passkey.get(cre_id)
             if not config_public_key:
-                raise HTTPException(status_code=413, detail="Public key not exits")
+                raise HTTPException(status_code=413, detail="Config passkey not exist")
 
             pkey_alg = int(config_public_key["pkey_alg"])
             sign_counter = int(config_public_key["sign_counter"])

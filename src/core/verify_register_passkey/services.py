@@ -7,7 +7,7 @@ from .ports import VerifyRegisterPasskeyUseCase, VerifyRegisterPasskeyRepository
 #     options_to_json,
 #     base64url_to_bytes,
 # )
-import webauthn
+from src import webauthn
 import uuid
 import datetime
 from src.comman import rp_id
@@ -15,7 +15,6 @@ from fastapi import HTTPException
 from src.infra.integration_passkey import IntegrationPasskey
 import json
 from src.comman import rp, fido_metadata
-
 
 class IntegrationPassKeyService(VerifyRegisterPasskeyUseCase):
 
@@ -51,6 +50,7 @@ class IntegrationPassKeyService(VerifyRegisterPasskeyUseCase):
             #     expected_rp_id=rp_id,
             #     require_user_verification=True,
             # )
+            rp.id = rp.id + ":8000"
             auth_data = webauthn.verify_create_webauthn_credentials(
                 rp=rp, challenge_b64=challenge_key.decode(), client_data_b64=response["data"],
                 attestation_b64=response["attestation"],
@@ -75,17 +75,22 @@ class IntegrationPassKeyService(VerifyRegisterPasskeyUseCase):
         return datetime.datetime.now()
 
     @classmethod
-    def get_data_create(cls, data_verify, info_account):
+    def get_data_create(cls, data_verify, info_account, credential_id):
 
         return {
             "id": cls.gen_id_account(),
+            "cre_id": credential_id,
             "account_id": info_account.get("account_id"),
             "sign_count": data_verify.sign_count,
             "aaguid": data_verify.attested_data.aaguid,
-            "attestation": data_verify.attestation,
             "public_key_alg": data_verify.public_key_alg,
             "public_key": data_verify.public_key,
             "create_on": cls.get_time_now(),
             "update_one": cls.get_time_now(),
             "status": "active"
         }
+
+ # auth_data.public_key.public_bytes(
+ #        cryptography.hazmat.primitives.serialization.Encoding.PEM,
+ #        cryptography.hazmat.primitives.serialization.PublicFormat.SubjectPublicKeyInfo
+ #    ).decode()

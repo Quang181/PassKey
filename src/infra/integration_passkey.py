@@ -1,5 +1,5 @@
 from OpenSSL.rand import status
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, CheckConstraint, Enum, LargeBinary
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, CheckConstraint, Enum, LargeBinary, BINARY
 from sqlalchemy.ext.declarative import declarative_base
 # from . import engine
 from src.comman import engine, Session
@@ -11,12 +11,12 @@ class IntegrationPasskey(Base):
     __tablename__ = 'integration_passkey'
 
     id = Column(String(100), primary_key=True)
+    cre_id = Column(String(100))
     account_id = Column(String(100))
     sign_count = Column(Integer)
     aaguid = Column(String(1024))
-    attestation = Column(String(100))
     public_key_alg = Column(String(100))  # Mã định danh của sản phẩm dùng để xác thực
-    public_key = Column(String(20))  # Cho phép NULL
+    public_key = Column(String(200))  # Cho phép NULL
     status = Column(String(20), Enum("active", "inactive", "delete"))
     create_on = Column(DateTime)
     update_one = Column(DateTime)
@@ -49,7 +49,7 @@ class IntegrationPasskey(Base):
             # }
 
             info_integration = IntegrationPasskey(id=self.id, account_id=self.account_id, sign_count=self.sign_count,
-                                                  aaguid=self.aaguid, attestation=self.attestation,
+                                                  aaguid=self.aaguid, cre_id=self.cre_id,
                                                   public_key_alg=self.public_key_alg, public_key=self.public_key,
                                                   create_on=self.create_on, update_one=self.update_one,
                                                   status=self.status)
