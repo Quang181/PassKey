@@ -60,6 +60,10 @@ class RequestVerifyAccount(RequestVerifyPassKeyUseCase):
 
             config_passkey =  json.loads(config_passkey)
             config_public_key = config_passkey.get(cre_id)
+            public_key = config_public_key.get("public_key")
+            if not public_key:
+                raise HTTPException(status_code=413, detail="No public key found")
+
             if not config_public_key:
                 raise HTTPException(status_code=413, detail="Config passkey not exist")
 
