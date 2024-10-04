@@ -15,6 +15,16 @@ from fastapi import HTTPException
 from src.infra.integration_passkey import IntegrationPasskey
 import json
 from src.comman import rp, fido_metadata
+import cryptography.x509
+import cryptography.exceptions
+import cryptography.hazmat.primitives.hashes
+import cryptography.hazmat.primitives.serialization
+import cryptography.hazmat.primitives.asymmetric.rsa
+import cryptography.hazmat.primitives.asymmetric.padding
+import cryptography.hazmat.primitives.asymmetric.ec
+import cryptography.hazmat.primitives.asymmetric.x25519
+import cryptography.hazmat.primitives.asymmetric.x448
+
 
 class IntegrationPassKeyService(VerifyRegisterPasskeyUseCase):
 
@@ -84,7 +94,7 @@ class IntegrationPassKeyService(VerifyRegisterPasskeyUseCase):
             "sign_count": data_verify.sign_count,
             "aaguid": data_verify.aaguid,
             "public_key_alg": data_verify.public_key_alg,
-            "public_key":  auth_data.public_key.public_bytes(
+            "public_key":  data_verify.public_key.public_bytes(
         cryptography.hazmat.primitives.serialization.Encoding.PEM,
         cryptography.hazmat.primitives.serialization.PublicFormat.SubjectPublicKeyInfo
     ).decode(),
