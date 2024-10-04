@@ -166,7 +166,7 @@
             const password = document.getElementById('password').value;
 
             // Gửi yêu cầu đăng nhập tới server
-            const response = await fetch('http://123.30.48.240:8000/login', {
+            const response = await fetch('http://localhost:8000/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -279,7 +279,11 @@
                 })
                 .then(function (response) {
                     let data = {
-                        response,
+                        id: b64encode(response.rawId),
+                        response: {
+                            data: b64encode(response.response.clientDataJSON),
+                            attestation: b64encode(response.response.attestationObject),
+                        }
 
                     }
                     console.log(response)
@@ -401,15 +405,15 @@
                 })
                 .then(function (response) {
                     let data = {
-                        // response: {
-                        //     data: b64encode(response.response.clientDataJSON),
-                        //     authenticator: b64encode(response.response.authenticatorData),
-                        //     signature: b64encode(response.response.signature),
-                        //     user: b64encode(response.response.userHandle),
-                        // }
-                        // response: {
-                            response
-                        // }
+                        response: {
+                            data: b64encode(response.response.clientDataJSON),
+                            authenticator: b64encode(response.response.authenticatorData),
+                            signature: b64encode(response.response.signature),
+                            user: b64encode(response.response.userHandle),
+                        }
+                        // // response: {
+                        //     response
+                        // // }
                     }
                     return fetch_json("http://localhost:8000/verify/passkey", {
                         method: "POST",

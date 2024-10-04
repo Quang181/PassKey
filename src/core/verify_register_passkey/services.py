@@ -1,17 +1,21 @@
 from main import configs_passkey
 from .ports import VerifyRegisterPasskeyUseCase, VerifyRegisterPasskeyRepository
 # from src.message import
-from webauthn import (
-    generate_registration_options,
-    verify_registration_response,
-    options_to_json,
-    base64url_to_bytes,
-)
+# from webauthn import (
+#     generate_registration_options,
+#     verify_registration_response,
+#     options_to_json,
+#     base64url_to_bytes,
+# )
+import webauthn
 import uuid
 import datetime
 from src.comman import rp_id
 from fastapi import HTTPException
 from src.infra.integration_passkey import IntegrationPasskey
+import json
+from src.comman import rp, fido_metadata
+
 
 class IntegrationPassKeyService(VerifyRegisterPasskeyUseCase):
 
@@ -23,50 +27,37 @@ class IntegrationPassKeyService(VerifyRegisterPasskeyUseCase):
     async def verify_register_passkey(self, data_verify, info_account):
         user_id = info_account.get("account_id")
         response = data_verify.get('response')
+        raw_id = data_verify.get("id")
+
+        if not raw_id or not response:
+            raise HTTPException(status_code=400, detail="Data in valid")
 
         if response is None:
             raise
 
-        credential_id = response.get('rawId')
-        key_credential = str(user_id) + "###" + "credentials"
-        if not credential_id:
-            raise HTTPException(status_code=500, detail="No credential")
-
-        credential_id = base64url_to_bytes(credential_id)
-        # check_credential = await self.integration_passkey.check_credential(credential_id)
-        # if check_credential:
-        #     raise HTTPException(status_code=413, detail="Credential exits")
-
-        config_passkey = await IntegrationPasskey(account_id=user_id, status="delete").list_config_integration()
-        for i in config_passkey:
-            if credential_id == i.credential_id:
-                raise HTTPException(status_code=400, detail="credential id exits")
-
-
-        credential_request = [i.decode("utf-8") for i in await self.redis_cli.list_value(key_credential)]
-
-        if credential_id not in credential_request and credential_id and config_passkey:
-            raise HTTPException(status_code=400, detail="Invalid credential")
-
-        convert_key = "test" + "challenge"
+        convert_key = user_id + "challenge"
         challenge_key = await self.redis_cli.get_value_by_key(convert_key)
-        print(challenge_key)
         if not challenge_key:
             raise HTTPException(status_code=413, detail="Please request before verify Passkey")
 
         try:
-            registration_verification = verify_registration_response(
-                # Demonstrating the ability to handle a plain dict version of the WebAuthn response
-                credential={
-                    **data_verify.get("response")
-                },
-                expected_challenge=challenge_key,
-                expected_origin='http://localhost:8000',
-                expected_rp_id=rp_id,
-                require_user_verification=True,
+            # registration_verification = verify_registration_response(
+            #     # Demonstrating the ability to handle a plain dict version of the WebAuthn response
+            #     credential={
+            #         **data_verify.get("response")
+            #     },
+            #     expected_challenge=challenge_key,
+            #     expected_origin='http://localhost:8000',
+            #     expected_rp_id=rp_id,
+            #     require_user_verification=True,
+            # )
+            auth_data = webauthn.verify_create_webauthn_credentials(
+                rp=rp, challenge_b64=challenge_key, client_data_b64=response["data"],
+                attestation_b64=response["attestation"],
+                fido_metadata=fido_metadata
             )
 
-            await self.integration_passkey.create_info_register_passkey(self.get_data_create(registration_verification, info_account))
+            await self.integration_passkey.create_info_register_passkey(self.get_data_create(auth_data, info_account))
 
             return {
                 "code": 200
@@ -84,17 +75,16 @@ class IntegrationPassKeyService(VerifyRegisterPasskeyUseCase):
         return datetime.datetime.now()
 
     @classmethod
-    def get_data_create(cls, info_verify, info_account):
+    def get_data_create(cls, data_verify, info_account):
+
         return {
             "id": cls.gen_id_account(),
             "account_id": info_account.get("account_id"),
-            "credential_id": info_verify.credential_id,
-            "credential_public_key": info_verify.credential_public_key,
-            "sign_count": info_verify.sign_count,
-            "aaguid": info_verify.aaguid,
-            "fmt": info_verify.fmt,
-            "credential_type": info_verify.credential_type if info_verify.credential_type else None,
-            "credential_device_type": info_verify.credential_device_type,
+            "sign_count": data_verify.sign_count,
+            "aaguid": data_verify.attested_data.aaguid,
+            "attestation": data_verify.attestation,
+            "public_key_alg": data_verify.public_key_alg,
+            "public_key": data_verify.public_key,
             "create_on": cls.get_time_now(),
             "update_one": cls.get_time_now(),
             "status": "active"
