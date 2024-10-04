@@ -52,7 +52,7 @@ class IntegrationPassKeyService(VerifyRegisterPasskeyUseCase):
             #     require_user_verification=True,
             # )
             auth_data = webauthn.verify_create_webauthn_credentials(
-                rp=rp, challenge_b64=challenge_key, client_data_b64=response["data"],
+                rp=rp, challenge_b64=challenge_key.decode(), client_data_b64=response["data"],
                 attestation_b64=response["attestation"],
                 fido_metadata=fido_metadata
             )
