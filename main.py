@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from WebAuthn import WebAuthn
+# from WebAuthn import WebAuthn
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 # from src.router import

@@ -14,7 +14,7 @@ class IntegrationPasskey(Base):
     account_id = Column(String(100))
     sign_count = Column(Integer)
     aaguid = Column(String(1024))
-    attestation = Column(String, default=0)
+    attestation = Column(String(100))
     public_key_alg = Column(String(100))  # Mã định danh của sản phẩm dùng để xác thực
     public_key = Column(String(20))  # Cho phép NULL
     status = Column(String(20), Enum("active", "inactive", "delete"))
