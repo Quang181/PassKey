@@ -26,7 +26,7 @@ class IntegrationPasskey(Base):
     async def get_integration_by_user(self):
         session = Session()
         info_integration = session.query(IntegrationPasskey).filter_by(account_id=self.account_id,
-                                                                       status="active")
+                                                                       status="active").all()
         session.close()
 
         return info_integration
@@ -100,7 +100,7 @@ class IntegrationPasskey(Base):
 
     async def update_status_config(self, id, status):
         session = Session()
-        credentials = session.query(IntegrationPasskey).filter(IntegrationPasskey.id == id).update({"status": status})
+        credentials = update(IntegrationPasskey).where(IntegrationPasskey.id == id,).values(status=status)
         session.commit()
         session.close()
 
