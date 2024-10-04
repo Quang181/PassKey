@@ -86,9 +86,7 @@ class RequestVerifyAccount(RequestVerifyPassKeyUseCase):
                 raise HTTPException(status_code=413, detail="Verification failed")
 
             sign_counter += 1
-            update_number_sign = await IntegrationPasskey().update_number_login(account_id, sign_counter, cre_id)
-            if not update_number_sign:
-                raise HTTPException(status_code=413, detail="Update number login failed")
+            await IntegrationPasskey().update_number_login(account_id, sign_counter, cre_id)
 
             return {
                 "code": 200,

@@ -1,5 +1,5 @@
 from OpenSSL.rand import status
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, CheckConstraint, Enum, LargeBinary, BINARY
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, CheckConstraint, Enum, LargeBinary, BINARY, update
 from sqlalchemy.ext.declarative import declarative_base
 # from . import engine
 from src.comman import engine, Session
@@ -108,8 +108,10 @@ class IntegrationPasskey(Base):
 
     async def update_number_login(self, account_id, number_sign: int, cre_id):
         session = Session()
-        credentials = session.query(IntegrationPasskey).filter(IntegrationPasskey.account_id == account_id,
-                                                               IntegrationPasskey.cre_id== cre_id).update({number_sign: number_sign})
+
+        credentials = update(IntegrationPasskey).where(IntegrationPasskey.account_id == account_id,
+                                                               IntegrationPasskey.cre_id== cre_id).values(sign_count=number_sign)
+        session.execute(credentials)
         session.commit()
         session.close()
 

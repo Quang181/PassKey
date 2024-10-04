@@ -122,6 +122,7 @@ def verify_create_webauthn_credentials(
 
     if "authData" not in attestation_data or type(attestation_data["authData"]) != bytes:
         raise errors.WebAuthnError("Invalid data")
+    authenticator_data = attestation.AuthenticatorData.from_bytes(attestation_data["authData"])
 
     # if rp_hash != authenticator_data.rp_hash:
     #     raise errors.WebAuthnError("Verification failed")
