@@ -14,7 +14,12 @@ class VerifyRegisterPasskeyAdapter(VerifyRegisterPasskeyRepository):
         if not status_create:
             raise InternalServerError
 
-    # async def check_credential(self, credential_id):
-    #     integration_passkey = IntegrationPasskey(credential_id=credential_id)
-    #     info_credential = await integration_passkey.check_credential()
-    #     return info_credential
+    async def check_credential(self, credential_id):
+        integration_passkey = IntegrationPasskey(cre_id=credential_id, status="delete")
+        info_credential = await integration_passkey.check_credential()
+        return info_credential
+
+    async def check_aaguid(self, aaguid, account_id):
+        integration_passkey = IntegrationPasskey(aaguid=aaguid, account_id=account_id)
+        info_credential = await integration_passkey.get_info_aaguid()
+        return info_credential

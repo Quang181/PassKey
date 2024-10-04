@@ -63,14 +63,14 @@ class IntegrationPasskey(Base):
 
         return status_create
 
-    # async def check_credential(self):
-    #     session = Session()
-    #     info_credential = session.query(IntegrationPasskey).filter(
-    #         IntegrationPasskey.credential_id == self.credential_id,
-    #         IntegrationPasskey.status != self.status).first()
-    #     session.close()
-    #
-    #     return info_credential
+    async def check_credential(self):
+        session = Session()
+        info_credential = session.query(IntegrationPasskey).filter(
+            IntegrationPasskey.cre_id == self.cre_id,
+            IntegrationPasskey.status != self.status).first()
+        session.close()
+
+        return info_credential
 
     async def list_config_integration(self):
 
@@ -106,7 +106,25 @@ class IntegrationPasskey(Base):
 
         return credentials
 
+    async def update_number_login(self, account_id, number_sign: int, cre_id):
+        session = Session()
+        credentials = session.query(IntegrationPasskey).filter(IntegrationPasskey.account_id == account_id,
+                                                               IntegrationPasskey.cre_id== cre_id).update({number_sign: number_sign})
+        session.commit()
+        session.close()
 
+        return credentials
+
+
+    async def get_info_aaguid(self):
+        session = Session()
+        info_credential = session.query(IntegrationPasskey).filter(
+            IntegrationPasskey.aaguid == self.aaguid,
+            IntegrationPasskey.account_id == self.account_id,
+            IntegrationPasskey.status != "delete").first()
+        session.close()
+
+        return info_credential
 # session = Session()
 # c = session.query(IntegrationPasskey).filter(IntegrationPasskey.account_id == "123123j12nsdha-daskdnas12").all()
 #

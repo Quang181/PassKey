@@ -24,6 +24,11 @@ import cryptography.hazmat.primitives.asymmetric.padding
 import cryptography.hazmat.primitives.asymmetric.ec
 import cryptography.hazmat.primitives.asymmetric.x25519
 import cryptography.hazmat.primitives.asymmetric.x448
+import cbor2
+import base64
+
+
+from ...api.register_passkey.dependencies import integration_pass_key
 
 
 class IntegrationPassKeyService(VerifyRegisterPasskeyUseCase):
@@ -38,12 +43,14 @@ class IntegrationPassKeyService(VerifyRegisterPasskeyUseCase):
         response = data_verify.get('response')
         cre_id = data_verify.get("id")
 
+        aaguid = self.get_aaguild_by_response(response["attestation"])
+
         if not cre_id or not response:
             raise HTTPException(status_code=400, detail="Data in valid")
 
-        if response is None:
-            raise
-
+        credential_account = await self.integration_passkey.check_aaguid(str(aaguid), user_id)
+        if credential_account:
+            raise HTTPException(status_code=400, detail="Credential already exists")
 
         convert_key = user_id + "challenge"
         challenge_key = await self.redis_cli.get_value_by_key(convert_key)
@@ -51,16 +58,6 @@ class IntegrationPassKeyService(VerifyRegisterPasskeyUseCase):
             raise HTTPException(status_code=413, detail="Please request before verify Passkey")
 
         try:
-            # registration_verification = verify_registration_response(
-            #     # Demonstrating the ability to handle a plain dict version of the WebAuthn response
-            #     credential={
-            #         **data_verify.get("response")
-            #     },
-            #     expected_challenge=challenge_key,
-            #     expected_origin='http://localhost:8000',
-            #     expected_rp_id=rp_id,
-            #     require_user_verification=True,
-            # )
             auth_data = webauthn.verify_create_webauthn_credentials(
                 rp=rp, challenge_b64=challenge_key.decode(), client_data_b64=response["data"],
                 attestation_b64=response["attestation"],
@@ -103,3 +100,12 @@ class IntegrationPassKeyService(VerifyRegisterPasskeyUseCase):
             "status": "active"
         }
  #
+    @classmethod
+    def get_aaguild_by_response(cls, attestation_b64):
+        # attestation_b64 = response["attestation"]
+        if not attestation_b64:
+            raise HTTPException(status_code=413, data_verify="attestation not exits")
+
+        attestation_data = cbor2.loads(base64.b64decode(attestation_b64))
+        authenticator_data = webauthn.attestation.AuthenticatorData.from_bytes(attestation_data["authData"])
+        return authenticator_data.attested_data.aaguid

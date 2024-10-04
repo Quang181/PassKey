@@ -4,8 +4,11 @@ class VerifyRegisterPasskeyRepository:
     def create_info_register_passkey(self, info_register):
         raise NotImplementedError()
 
-    # def check_credential(self, credential_id):
-    #     raise NotImplementedError()
+    def check_credential(self, credential_id):
+        raise NotImplementedError()
+
+    def check_aaguid(self, aaguid, account_id):
+        raise NotImplementedError()
 
 class VerifyRegisterPasskeyUseCase:
 
