@@ -82,15 +82,14 @@ class IntegrationPassKeyService(VerifyRegisterPasskeyUseCase):
             "cre_id": credential_id,
             "account_id": info_account.get("account_id"),
             "sign_count": data_verify.sign_count,
-            "aaguid": data_verify.attested_data.aaguid,
+            "aaguid": data_verify.aaguid,
             "public_key_alg": data_verify.public_key_alg,
-            "public_key": data_verify.public_key,
+            "public_key":  auth_data.public_key.public_bytes(
+        cryptography.hazmat.primitives.serialization.Encoding.PEM,
+        cryptography.hazmat.primitives.serialization.PublicFormat.SubjectPublicKeyInfo
+    ).decode(),
             "create_on": cls.get_time_now(),
             "update_one": cls.get_time_now(),
             "status": "active"
         }
-
- # auth_data.public_key.public_bytes(
- #        cryptography.hazmat.primitives.serialization.Encoding.PEM,
- #        cryptography.hazmat.primitives.serialization.PublicFormat.SubjectPublicKeyInfo
- #    ).decode()
+ #
