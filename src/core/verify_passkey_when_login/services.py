@@ -54,7 +54,7 @@ class VerifyPassKeyWhenLoginService(VerifyPasskeyWhenLoginUseCase):
             config_by_public_key = {}
 
             for i in integrations_passkey:
-                cre_id = i.gre_id
+                cre_id = i.cre_id
                 pkey_alg = i.public_key_alg
                 sign_counter = i.sign_count
                 public_key = i.public_key
