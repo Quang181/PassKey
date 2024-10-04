@@ -26,9 +26,9 @@ class IntegrationPassKeyService(VerifyRegisterPasskeyUseCase):
     async def verify_register_passkey(self, data_verify, info_account):
         user_id = info_account.get("account_id")
         response = data_verify.get('response')
-        raw_id = data_verify.get("id")
+        cre_id = data_verify.get("id")
 
-        if not raw_id or not response:
+        if not cre_id or not response:
             raise HTTPException(status_code=400, detail="Data in valid")
 
         if response is None:
@@ -57,7 +57,7 @@ class IntegrationPassKeyService(VerifyRegisterPasskeyUseCase):
                 fido_metadata=fido_metadata
             )
 
-            await self.integration_passkey.create_info_register_passkey(self.get_data_create(auth_data, info_account))
+            await self.integration_passkey.create_info_register_passkey(self.get_data_create(auth_data, info_account, cre_id))
 
             return {
                 "code": 200
